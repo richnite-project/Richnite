@@ -173,6 +173,7 @@ bool RpcServer::processJsonRpcRequest(const HttpRequest& request, HttpResponse& 
     jsonResponse.setId(jsonRequest.getId()); // copy id
 
     static std::unordered_map<std::string, RpcServer::RpcHandler<JsonMemberMethod>> jsonRpcHandlers = {
+      { "getblockraw", { makeMemberMethod(&RpcServer::on_get_block_raw), false } },
       { "getblockcount", { makeMemberMethod(&RpcServer::on_getblockcount), true } },
       { "on_getblockhash", { makeMemberMethod(&RpcServer::on_getblockhash), false } },
       { "getblocktemplate", { makeMemberMethod(&RpcServer::on_getblocktemplate), false } },
@@ -727,5 +728,35 @@ bool RpcServer::on_get_block_header_by_height(const COMMAND_RPC_GET_BLOCK_HEADER
   return true;
 }
 
+// This is an additional method to support the Iridium block explorer
+bool RpcServer::on_get_block_raw(const COMMAND_RPC_GET_BLOCK_RAW::request& req, COMMAND_RPC_GET_BLOCK_RAW::response& res) {
+  Hash block_hash;
+  try {
+    uint32_t height = boost::lexical_cast<uint32_t>(req.hash);
+    block_hash = m_core.getBlockHashByIndex(static_cast<uint32_t>(height));
+  } catch (boost::bad_lexical_cast &) {
+    if (!parse_hash256(req.hash, block_hash)) {
+      throw JsonRpc::JsonRpcError{
+        CORE_RPC_ERROR_CODE_WRONG_PARAM,
+        "Failed to parse hex representation of block hash. Hex = " + req.hash + '.' };
+    }
+  }
+  assert(m_core.have_block(block_hash));
+  auto rawBlock = m_core.getRawBlockForRPC(block_hash);
+  auto block = m_core.getBlockByHash(block_hash);
+  CachedBlock cachedBlock(block);
+
+  res.block = toHex(rawBlock.block);
+  res.txs.reserve(rawBlock.transactions.size()+1);
+  res.txs.push_back(toHex(toBinaryArray(block.baseTransaction)));
+  for (size_t i = 0; i < rawBlock.transactions.size(); ++i) {
+    res.txs.push_back(toHex(rawBlock.transactions[i]));
+  }
+
+  fill_block_header_response(block, false, cachedBlock.getBlockIndex(), cachedBlock.getBlockHash(), res.block_header);
+  
+  res.status = CORE_RPC_STATUS_OK;
+  return true;
+}
 
 }

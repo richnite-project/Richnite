@@ -118,7 +118,8 @@ public:
   virtual std::vector<Crypto::Hash> getAlternativeBlockHashesByIndex(uint32_t blockIndex) const override;
   virtual std::vector<Crypto::Hash> getBlockHashesByTimestamps(uint64_t timestampBegin, size_t secondsCount) const override;
   virtual std::vector<Crypto::Hash> getTransactionHashesByPaymentId(const Crypto::Hash& paymentId) const override;
-
+  RawBlock getRawBlockForRPC(const Crypto::Hash& blockHash) const;
+    
 private:
   const Currency& currency;
   System::Dispatcher& dispatcher;

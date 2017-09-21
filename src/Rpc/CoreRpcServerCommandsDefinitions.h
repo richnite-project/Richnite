@@ -575,4 +575,27 @@ struct COMMAND_RPC_GET_TRANSACTION_DETAILS_BY_HASHES {
   };
 };
 
+struct COMMAND_RPC_GET_BLOCK_RAW {
+  struct request {
+    std::string hash;
+
+    void serialize(ISerializer &s) {
+      KV_MEMBER(hash)
+    }
+  };
+  struct response {
+    block_header_response block_header;
+    std::string block;
+    std::vector<std::string> txs;
+    std::string status;
+
+    void serialize(ISerializer &s) {
+      KV_MEMBER(block_header)
+      KV_MEMBER(block)
+      KV_MEMBER(txs)
+      KV_MEMBER(status)
+    }
+  };
+};
+
 }

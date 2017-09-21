@@ -571,7 +571,9 @@ std::error_code Core::addBlock(const CachedBlock& cachedBlock, RawBlock&& rawBlo
   bool addOnTop = cache->getTopBlockIndex() == previousBlockIndex;
   auto maxBlockCumulativeSize = currency.maxBlockCumulativeSize(previousBlockIndex + 1);
   if (cumulativeBlockSize > maxBlockCumulativeSize) {
-    logger(Logging::WARNING) << "Block " << cachedBlock.getBlockHash() << " has too big cumulative size";
+    logger(Logging::WARNING) << "Block " << cachedBlock.getBlockHash() << " has too big cumulative size: "
+	<< cumulativeBlockSize << " bytes, " <<
+      "exptected no more than " << maxBlockCumulativeSize << " bytes";
     return error::BlockValidationError::CUMULATIVE_BLOCK_SIZE_TOO_BIG;
   }
 
@@ -603,16 +605,20 @@ std::error_code Core::addBlock(const CachedBlock& cachedBlock, RawBlock&& rawBlo
   uint64_t reward = 0;
   int64_t emissionChange = 0;
   auto alreadyGeneratedCoins = cache->getAlreadyGeneratedCoins(previousBlockIndex);
-  auto lastBlocksSizes = cache->getLastBlocksSizes(currency.rewardBlocksWindow(), previousBlockIndex, addGenesisBlock);
+  auto rewardBlocksWindow = currency.rewardBlocksWindow();
+  if (previousBlockIndex <= 6357) rewardBlocksWindow = 50; // Iridium historical quirk
+  auto lastBlocksSizes = cache->getLastBlocksSizes(rewardBlocksWindow, previousBlockIndex, addGenesisBlock);
   auto blocksSizeMedian = Common::medianValue(lastBlocksSizes);
 
   if (!currency.getBlockReward(cachedBlock.getBlock().majorVersion, blocksSizeMedian,
                                cumulativeBlockSize, alreadyGeneratedCoins, cumulativeFee, reward, emissionChange)) {
-    logger(Logging::WARNING) << "Block " << cachedBlock.getBlockHash() << " has too big cumulative size";
+    logger(Logging::WARNING) << "Block " << cachedBlock.getBlockHash() << " has too big cumulative size: "
+	<< cumulativeBlockSize << " bytes, " <<
+      "exptected no more than " << maxBlockCumulativeSize << " bytes";
     return error::BlockValidationError::CUMULATIVE_BLOCK_SIZE_TOO_BIG;
   }
 
-  if (minerReward != reward) {
+  if (minerReward != reward && previousBlockIndex >= CryptoNote::parameters::IRIDIUM_REWARD_ADJUSTMENT_BLOCK) { // permissive for Iridium's history
     logger(Logging::WARNING) << "Block reward mismatch for block " << cachedBlock.getBlockHash()
                              << ". Expected reward: " << reward << ", got reward: " << minerReward;
     return error::BlockValidationError::BLOCK_REWARD_MISMATCH;
@@ -623,8 +629,10 @@ std::error_code Core::addBlock(const CachedBlock& cachedBlock, RawBlock&& rawBlo
       logger(Logging::WARNING) << "Checkpoint block hash mismatch for block " << cachedBlock.getBlockHash();
       return error::BlockValidationError::CHECKPOINT_BLOCK_HASH_MISMATCH;
     }
-  } else if (!currency.checkProofOfWork(cryptoContext, cachedBlock, currentDifficulty)) {
-    logger(Logging::WARNING) << "Proof of work too weak for block " << cachedBlock.getBlockHash();
+  } else if (previousBlockIndex > 8500 && !currency.checkProofOfWork(cryptoContext, cachedBlock, currentDifficulty)) {
+    // Iridium hack -- between blocks 6358 and 8550 difficulty checks were turned off (bug)
+    logger(Logging::WARNING) << "Proof of work too weak for block " << cachedBlock.getBlockHash()
+			     << " Diff: " << currentDifficulty;
     return error::BlockValidationError::PROOF_OF_WORK_TOO_WEAK;
   }
 
@@ -1700,6 +1708,12 @@ std::vector<Crypto::Hash> Core::doBuildSparseChain(const Crypto::Hash& blockHash
   }
 
   return sparseChain;
+}
+
+RawBlock Core::getRawBlockForRPC(const Crypto::Hash& blockHash) const {
+  IBlockchainCache* segment = findMainChainSegmentContainingBlock(blockHash);
+  uint32_t blockIndex = segment->getBlockIndex(blockHash);
+  return segment->getBlockByIndex(blockIndex);
 }
 
 RawBlock Core::getRawBlock(IBlockchainCache* segment, uint32_t blockIndex) const {
