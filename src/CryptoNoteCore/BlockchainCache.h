@@ -33,6 +33,7 @@
 #include "Currency.h"
 #include "Difficulty.h"
 #include "IBlockchainCache.h"
+#include "CryptoNoteCore/UpgradeManager.h"
 
 namespace CryptoNote {
 
