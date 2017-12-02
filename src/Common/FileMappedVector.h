@@ -23,7 +23,10 @@
 
 #include <boost/filesystem.hpp>
 
-#include "System/MemoryMappedFile.h"
+
+#include "Platform/Posix/System/MemoryMappedFile.h"
+// dirty osx compile hack
+//#include "System/MemoryMappedFile.h"
 
 #include "Common/ScopeExit.h"
 
