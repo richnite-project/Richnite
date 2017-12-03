@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 2.8.6)
 
-set(VERSION "2.1.2")
-set(COMMIT "54e8329")
 # $Format:Packaged from commit %H%nset(COMMIT %h)%nset(REFS "%d")$
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)

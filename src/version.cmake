@@ -1,11 +1,25 @@
 
-    message(STATUS "Setting tag version and commit ID")
-    message(STATUS "Version : ${VERSION}")
-    message(STATUS "Revision : ${GIT_REVISION}")
+message(STATUS "Setting tag version and commit ID")
+execute_process(COMMAND "${GIT}" pull --tags)
+execute_process(COMMAND "${GIT}" describe --tags RESULT_VARIABLE RET OUTPUT_VARIABLE DESCRIPTION OUTPUT_STRIP_TRAILING_WHITESPACE)
+#message(STATUS "DESCRIPTION : ${DESCRIPTION}")
+if(RET)
+	message(WARNING "Cannot determine current revision. Make sure that you are building either from a Git working tree or from a source archive.")
+	set(VERSION "${COMMIT}")
+	configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in" "${TO}")
+	message(STATUS "Version : ${VERSION}")
+else()
+	string(REGEX MATCH "([0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f])?(-dirty)? $" COMMIT "${DESCRIPTION} ")
+    string(STRIP "${COMMIT}" COMMIT)
+	#message(STATUS "Commit before strip : ${COMMIT}")
 
-    set(VERSION "${VERSION}")
-    set(GIT_REVISION "${GIT_REVISION}")
+	set(COMMIT_ID "${COMMIT}")
+	#message(STATUS "Commit : ${COMMIT}")
+	string(SUBSTRING "${DESCRIPTION}" 1 5 VERS )
+	set(VERSION "${VERS}")
+	message(STATUS "Version : ${VERSION}")
+	message(STATUS "Commit : ${COMMIT_ID}")
 
-    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in" "${TO}")
+	configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in" "${TO}")
 
-    
+endif()
