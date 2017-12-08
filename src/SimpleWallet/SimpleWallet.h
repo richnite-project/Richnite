@@ -156,7 +156,7 @@ bool new_wallet(Crypto::SecretKey &secret_key, Crypto::SecretKey &view_key, cons
   private:
     std::string m_wallet_file_arg;
     std::string m_generate_new;
-std::string m_import_new;
+    std::string m_import_new;
     std::string m_import_path;
 
     std::string m_daemon_address;
