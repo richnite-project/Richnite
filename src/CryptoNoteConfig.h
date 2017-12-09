@@ -36,7 +36,7 @@ const size_t   BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW             = 60;
 // MONEY_SUPPLY - total number coins to be generated
 const uint64_t MONEY_SUPPLY                                  = UINT64_C(2500000000000000);
 const size_t CRYPTONOTE_COIN_VERSION                         = 1;
-const uint32_t ZAWY_DIFFICULTY_BLOCK_INDEX                   = 50000;
+const uint32_t ZAWY_DIFFICULTY_BLOCK_INDEX                   = 48000;
 const size_t ZAWY_DIFFICULTY_V2                              = 0;
 const size_t ZAWY_DIFFICULTY_V3                          	 = 0;
 const size_t ZAWY_DIFFICULTY_V4                              = 0;
@@ -85,7 +85,7 @@ const size_t   FUSION_TX_MIN_IN_OUT_COUNT_RATIO              = 4;
 const uint32_t KEY_IMAGE_CHECKING_BLOCK_INDEX                = 8560;
 const uint32_t IRIDIUM_REWARD_ADJUSTMENT_BLOCK               = 8560;
 
-const uint32_t UPGRADE_HEIGHT_V2                             = 50000;
+const uint32_t UPGRADE_HEIGHT_V2                             = 48000;
 const uint32_t UPGRADE_HEIGHT_V3                             = 99999999;
 const unsigned UPGRADE_VOTING_THRESHOLD                      = 90;               // percent
 const uint32_t UPGRADE_VOTING_WINDOW                         = EXPECTED_NUMBER_OF_BLOCKS_PER_DAY;  // blocks
@@ -170,7 +170,14 @@ const std::initializer_list<CheckpointData> CHECKPOINTS = {
      {40000,"ad7b1a7cae0be44cbf04f7f010db601d38d8c9cd30b5f60408a778ce3ed16892"},
      {41000,"e37a7e38029e11f658cdd56a1cd26bb55e4cd673e94147825fa85d7c7564426d"},
      {41800,"f71d3ffe8189b3ec19d015c70d2fd50fd78b9cb660e0319290df1adb3ca7c688"},
-     
+     {42000,"cd12e710f5a1b8a01d19d4ccc76db57ac6ee017456c4c1778307fdda85126ea3"},
+     {42500,"a099cf10fd105e17c77a8ffec66fc5f2f787b03d0de31a3acecc550ca7845a2a"},
+     {43000,"8bb4bf8dceeeb7aafdee98f1949c0dc7ae030317b85f0d7956087ace64f6b18b"},
+     {43500,"c9f85cd6b5a622590f7b9c8ab20f914bb70b59bdbc48db08b0dcaccf646c33ef"},
+     {44000,"aa8945c0d87050ff10c5deae2f6fc146efc9847e839096a556c7c1704c082c19"},
+     {44500,"eb95fe79af5aa6b6ecf73117aeeb6fbaf217110da9ba51c12af389298f25f653"},
+     {45000,"f22c56ef6174507f04f44d9b0206268689454ceb1b41e775964d447ae45d46c4"},
+     {45500,"4635aa86897b649e0409f8bb7a23649f3e63578c5a2a1225b3d1e9df26dfb553"},
     };
 
 } // CryptoNote
