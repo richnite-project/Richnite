@@ -476,6 +476,29 @@ Difficulty Currency::nextDifficulty(std::vector<uint64_t> timestamps,
 
   return (low + timeSpan - 1) / timeSpan;
 }
+/* Original algo from 28/11/2017
+# Dynamic EMA difficulty algo (Jacob Eliosoff's EMA and Zawy's adjustable window).
+# Bitcoin Cash dev (Amaury?) came up with the median of three to reduce timestamp errors.
+# For EMA origins see
+# https://en.wikipedia.org/wiki/Moving_average#Application_to_measuring_computer_performance
+# "Dynamic" means it triggers to a faster-responding value for N if a substantial change in hashrate
+# is detected. It increases from that event back to Nmax
+
+Nmax=70 # max EMA window
+Nmin=25 # min EMA window
+A=10, B=2, C=0.37  # A,B,C = 10,2,0.37 or 20, 1.65 0.45,
+
+# TS=timestamp, T=target solvetime, i.e. 600 seconds
+# Find the most recent unusual 20-block event
+for (i=height-Nmax to height) {  # height=current block index
+    if ( (median(TS[i],TS[i-1],TS[i-2]) - median(TS[i-20],TS[i-21],TS[i-22]))/T/A  > B
+           or
+         (median(TS[i],TS[i-1],TS[i-2]) - median(TS[i-20],TS[i-21],TS[i-22]))/T/A  < C  )
+      {   unusual_event=height - i + Nmin   }
+}
+N = min(Nmax, unusual_event))
+
+# now use the EMA difficulty algorithm with this N */
 
 Difficulty Currency::nextDifficulty(uint8_t version, uint32_t blockIndex, std::vector<uint64_t> timestamps,
   std::vector<Difficulty> cumulativeDifficulties) const {
