@@ -10,4 +10,6 @@ This is the iridium core source code and binary release.
 
 [BitcoinTalk main announcement thread](https://bitcointalk.org/index.php?topic=2150442.0;all)
 
-[Iridium-wallet (source and binaries)](https://github.com/iridiumdev/Iridium-wallet)
+[iridium-wallet gui (source and binaries)](https://github.com/iridiumdev/Iridium-wallet)
+
+[iridium graphicals elements](https://github.com/iridiumdev/iridium-graphics)
