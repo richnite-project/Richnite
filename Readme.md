@@ -13,3 +13,13 @@ This is the iridium core source code and binary release.
 [iridium-wallet gui (source and binaries)](https://github.com/iridiumdev/Iridium-wallet)
 
 [iridium graphicals elements](https://github.com/iridiumdev/iridium-graphics)
+
+
+How to compile this : 
+```
+$ git clone https://github.com/iridiumdev/iridium.git
+$ mkdir iridium-build
+$ cd iridium-build
+$ cmake -D STATIC=ON -D CMAKE_BUILD_TYPE=RELEASE ../iridium
+$ PORTABLE=1 make
+```
