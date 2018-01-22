@@ -36,7 +36,7 @@ const size_t   BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW             = 60;
 // MONEY_SUPPLY - total number coins to be generated
 const uint64_t MONEY_SUPPLY                                  = UINT64_C(2500000000000000);
 const size_t CRYPTONOTE_COIN_VERSION                         = 1;
-const uint32_t ZAWY_DIFFICULTY_BLOCK_INDEX                   = 70000;
+const uint32_t ZAWY_DIFFICULTY_BLOCK_INDEX                   = 69500; // HF Zawy
 const size_t ZAWY_DIFFICULTY_V2                              = 0;
 const size_t ZAWY_DIFFICULTY_V3                          	 = 0;
 const size_t ZAWY_DIFFICULTY_V4                              = 0;
@@ -46,9 +46,9 @@ static_assert(EMISSION_SPEED_FACTOR <= 8 * sizeof(uint64_t), "Bad EMISSION_SPEED
 
 const size_t   CRYPTONOTE_REWARD_BLOCKS_WINDOW               = 100;
 const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE     = 20000; // size of block (bytes) after which reward for block calculated using block size
-const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V2  = 40000; // increasing to allow bigger tx
+const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V2  = 60000; // increasing to allow bigger tx
 const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V1  = 20000;
-const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_CURRENT = CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE;
+const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_CURRENT = CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V2;
 const size_t   CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE        = 600;
 const size_t   CRYPTONOTE_DISPLAY_DECIMAL_POINT              = 8;
 const uint64_t MINIMUM_FEE                                   = UINT64_C(5000);
@@ -58,13 +58,13 @@ const uint64_t DIFFICULTY_TARGET                             = 175; // seconds
 const uint64_t EXPECTED_NUMBER_OF_BLOCKS_PER_DAY             = 24 * 60 * 60 / DIFFICULTY_TARGET;
 const size_t   DIFFICULTY_WINDOW                             = EXPECTED_NUMBER_OF_BLOCKS_PER_DAY; // blocks
 const size_t   DIFFICULTY_WINDOW_V1                          = DIFFICULTY_WINDOW;
-const size_t   DIFFICULTY_WINDOW_V2                          = DIFFICULTY_WINDOW;
+const size_t   DIFFICULTY_WINDOW_V2                          = 60;
 const size_t   DIFFICULTY_CUT                                = 60;  // timestamps to cut after sorting
 const size_t   DIFFICULTY_CUT_V1                             = DIFFICULTY_CUT;
 const size_t   DIFFICULTY_CUT_V2                             = DIFFICULTY_CUT;
 const size_t   DIFFICULTY_LAG                                = 15;  // set to 15 to match iridium_v2
 const size_t   DIFFICULTY_LAG_V1                             = DIFFICULTY_LAG;
-const size_t   DIFFICULTY_LAG_V2                             = DIFFICULTY_LAG;
+const size_t   DIFFICULTY_LAG_V2                             = 0;
 static_assert(2 * DIFFICULTY_CUT <= DIFFICULTY_WINDOW - 2, "Bad DIFFICULTY_WINDOW or DIFFICULTY_CUT");
 
 const size_t   MAX_BLOCK_SIZE_INITIAL                        =  20 * 1024;
@@ -85,7 +85,7 @@ const size_t   FUSION_TX_MIN_IN_OUT_COUNT_RATIO              = 4;
 const uint32_t KEY_IMAGE_CHECKING_BLOCK_INDEX                = 8560;
 const uint32_t IRIDIUM_REWARD_ADJUSTMENT_BLOCK               = 8560;
 
-const uint32_t UPGRADE_HEIGHT_V2                             = 70000;
+const uint32_t UPGRADE_HEIGHT_V2                             = 69500;
 const uint32_t UPGRADE_HEIGHT_V3                             = 99999999;
 const unsigned UPGRADE_VOTING_THRESHOLD                      = 90;               // percent
 const uint32_t UPGRADE_VOTING_WINDOW                         = EXPECTED_NUMBER_OF_BLOCKS_PER_DAY;  // blocks
@@ -133,7 +133,7 @@ const uint64_t P2P_DEFAULT_INVOKE_TIMEOUT                    = 60 * 2 * 1000; //
 const size_t   P2P_DEFAULT_HANDSHAKE_INVOKE_TIMEOUT          = 5000;          // 5 seconds
 const char     P2P_STAT_TRUSTED_PUB_KEY[]                    = "8f80f9a5a434a9f1510d13336228debfee9c918ce505efe225d8c94d045fa115";
 
-const char* const SEED_NODES[] = {"192.243.102.175:12007", "192.243.102.176:12007", "83.197.6.152:7080" };
+const char* const SEED_NODES[] = {"192.243.102.175:12007", "192.243.102.176:12007", "164.132.45.97:12007"};
 
 
 struct CheckpointData {
@@ -178,6 +178,12 @@ const std::initializer_list<CheckpointData> CHECKPOINTS = {
      {44500,"eb95fe79af5aa6b6ecf73117aeeb6fbaf217110da9ba51c12af389298f25f653"},
      {45000,"f22c56ef6174507f04f44d9b0206268689454ceb1b41e775964d447ae45d46c4"},
      {45500,"4635aa86897b649e0409f8bb7a23649f3e63578c5a2a1225b3d1e9df26dfb553"},
+    {50000,"4cd1655c21bdcc724b77717602e1d2f5a8af34061c94b34dba720c6875e9a7cf"},
+    {55000,"d96d63c2eec6bdb462052ff4d4140c4963ef2f0016571e11a3beb6d4c99ca38c"},
+    {60000,"44001d75be46fd97bccdb44fbf517b862c3abcfa22bf8f15eadd2c21f1b9e6e9"},
+    {65000,"b5cdfa0fb1a20c4d41c562597961f3127aed9508c614e5a86fb68342be976f1e"},
+    {66000,"2868d7eefe1d1f53f5d1c00bd0e490b9e4910db352ddc0fbfbb7b94f693ff15a"},
+    {66500,"60720ce3ede3dfb549b1611e9c28b259773f3c57bd28cebca6082a785d89a600"},
     };
 
 } // CryptoNote
