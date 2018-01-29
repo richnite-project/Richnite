@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.8.6)
 
+#Set build version
 set(VERSION_MAJOR "2")
 set(VERSION_MINOR "1.3f-${CMAKE_BUILD_TYPE}")
 
@@ -16,7 +17,7 @@ else()
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake ${CMAKE_CURRENT_BINARY_DIR})
 endif()
 
-project(Iridium)
+project(iridium)
 
 include_directories(include
     src
@@ -92,7 +93,10 @@ else()
     else()
         set(DEBUG_FLAGS "-g3 -O0 -fno-omit-frame-pointer")
     endif()
-    set(RELEASE_FLAGS "-Ofast -DNDEBUG -Wno-unused-variable -Wno-unused-private-field -Wno-uninitialized -Wno-unused-function -Wno-sign-compare")
+    set(RELEASE_FLAGS "-Ofast -DNDEBUG -Wno-unused-variable -Wno-uninitialized -Wno-unused-function -Wno-sign-compare")
+    if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
+        set(RELEASE_FLAGS "${RELEASE_FLAGS} -Wno-unused-private-field")
+    endif()
     if(NOT APPLE)
         # There is a clang bug that does not allow to compile code that uses AES-NI intrinsics if -flto is enabled
         if (CMAKE_C_COMPILER_ID STREQUAL "GNU" AND CMAKE_SYSTEM_NAME STREQUAL "Linux"
@@ -102,6 +106,11 @@ else()
             set(CMAKE_RANLIB gcc-ranlib)
         endif()
         #set(RELEASE_FLAGS "${RELEASE_FLAGS} -flto")
+    else() # remove ranlib complaining for no symbols
+        set(CMAKE_C_ARCHIVE_CREATE   "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
+        set(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
+        set(CMAKE_C_ARCHIVE_FINISH   "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
+        set(CMAKE_CXX_ARCHIVE_FINISH "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
     endif()
     #if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND NOT MINGW)
     #  set(RELEASE_FLAGS "${RELEASE_FLAGS} -fno-fat-lto-objects")
@@ -131,6 +140,7 @@ endif()
 
 set(COMMIT_ID_IN_VERSION ON CACHE BOOL "Include commit ID in version")
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/version")
+
 if (NOT COMMIT_ID_IN_VERSION)
     set(VERSION "${VERSION}-unknown")
     set(COMMIT_ID "unknown")
@@ -139,7 +149,10 @@ if (NOT COMMIT_ID_IN_VERSION)
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in" "${CMAKE_CURRENT_BINARY_DIR}/version/version.h")
     add_custom_target(version ALL)
 elseif(DEFINED COMMIT_ID_IN_VERSION)
-
+    find_package(Git QUIET)
+    if(Git_FOUND OR GIT_FOUND)
+        message(STATUS "Found Git: ${GIT_EXECUTABLE}")
+    endif()
     execute_process(
         COMMAND git rev-parse --abbrev-ref HEAD  # Get the current branch
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
@@ -157,6 +170,7 @@ elseif(DEFINED COMMIT_ID_IN_VERSION)
     set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}")
     message(STATUS "--------------------- Build details ----------------------------")
     message(STATUS "Build : ${CMAKE_BUILD_TYPE}")
+    message(STATUS "Compiler : ${CMAKE_C_COMPILER_ID} version ${CMAKE_CXX_COMPILER_VERSION}")
     message(STATUS "Branch : ${GIT_BRANCH}")
     message(STATUS "Version : ${VERSION}")
     message(STATUS "Revision : ${COMMIT_ID}")
@@ -166,17 +180,6 @@ elseif(DEFINED COMMIT_ID_IN_VERSION)
     message(STATUS "----------------------------------------------------------")
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in" "${CMAKE_CURRENT_BINARY_DIR}/version/version.h")
     add_custom_target(version ALL)
-else()
-    find_package(Git QUIET)
-    if(Git_FOUND OR GIT_FOUND)
-        message(STATUS "Found Git: ${GIT_EXECUTABLE}")
-        add_custom_target(version ALL "${CMAKE_COMMAND}" "-D" "VERSION=${VERSION}" "-D" "GIT=${GIT_EXECUTABLE}" "-D" "TO=${CMAKE_CURRENT_BINARY_DIR}/version/version.h" "-P" "${CMAKE_CURRENT_SOURCE_DIR}/src/version.cmake" WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
-    else()
-        message(STATUS "WARNING: Git was not found!")
-        set(VERSION "${VERSION}-unknown")
-        configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in" "${CMAKE_CURRENT_BINARY_DIR}/version/version.h")
-        add_custom_target(version ALL)
-    endif()
 endif()
 
 add_subdirectory(external)
