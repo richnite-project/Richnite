@@ -1,20 +1,28 @@
 cmake_minimum_required(VERSION 2.8.6)
 
 set(VERSION_MAJOR "2")
-set(VERSION_MINOR "1.3")
+set(VERSION_MINOR "1.3f-${CMAKE_BUILD_TYPE}")
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_CONFIGURATION_TYPES Debug RelWithDebInfo Release CACHE TYPE INTERNAL)
-set(CMAKE_SKIP_INSTALL_RULES ON)
 set(CMAKE_SKIP_PACKAGE_ALL_DEPENDENCY ON)
 set(CMAKE_SUPPRESS_REGENERATION ON)
-enable_testing()
-# copy CTestCustom.cmake to build dir to disable long running tests in 'make test'
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake ${CMAKE_CURRENT_BINARY_DIR})
+set(STATIC ON CACHE BOOL "Link libraries statically")
+set(BUILD_TESTS OFF CACHE BOOL "build tests")
+
+if(BUILD_TESTS)
+    enable_testing()
+else()
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake ${CMAKE_CURRENT_BINARY_DIR})
+endif()
 
 project(Iridium)
 
-include_directories(include src external "${CMAKE_CURRENT_BINARY_DIR}/version")
+include_directories(include
+    src
+    external
+    "${CMAKE_CURRENT_BINARY_DIR}/version"
+    )
 if(APPLE)
     include_directories(SYSTEM /usr/include/malloc)
     enable_language(ASM)
@@ -84,7 +92,7 @@ else()
     else()
         set(DEBUG_FLAGS "-g3 -O0 -fno-omit-frame-pointer")
     endif()
-    set(RELEASE_FLAGS "-Ofast -DNDEBUG -Wno-unused-variable")
+    set(RELEASE_FLAGS "-Ofast -DNDEBUG -Wno-unused-variable -Wno-unused-private-field -Wno-uninitialized -Wno-unused-function -Wno-sign-compare")
     if(NOT APPLE)
         # There is a clang bug that does not allow to compile code that uses AES-NI intrinsics if -flto is enabled
         if (CMAKE_C_COMPILER_ID STREQUAL "GNU" AND CMAKE_SYSTEM_NAME STREQUAL "Linux"
@@ -147,18 +155,15 @@ elseif(DEFINED COMMIT_ID_IN_VERSION)
         )
 
     set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}")
-    message(STATUS "--------------------- Version ----------------------------")
+    message(STATUS "--------------------- Build details ----------------------------")
+    message(STATUS "Build : ${CMAKE_BUILD_TYPE}")
     message(STATUS "Branch : ${GIT_BRANCH}")
     message(STATUS "Version : ${VERSION}")
     message(STATUS "Revision : ${COMMIT_ID}")
-
-        message(STATUS "Link libraries statically : ${STATIC}" )
-
-
-        message(STATUS "Portable : ${STATIC}" )
-
+    message(STATUS "Link libraries statically : ${STATIC}" )
+    message(STATUS "Portable : ${STATIC}" )
+    message(STATUS "Compile tests : " ${BUILD_TESTS})
     message(STATUS "----------------------------------------------------------")
-    #set(COMMIT_ID "${COMMIT_ID}")
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in" "${CMAKE_CURRENT_BINARY_DIR}/version/version.h")
     add_custom_target(version ALL)
 else()
@@ -176,4 +181,7 @@ endif()
 
 add_subdirectory(external)
 add_subdirectory(src)
-add_subdirectory(tests)
+if(BUILD_TESTS)
+    add_subdirectory(tests)
+endif()
+
