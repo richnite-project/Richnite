@@ -1,20 +1,29 @@
 cmake_minimum_required(VERSION 2.8.6)
 
+#Set build version
 set(VERSION_MAJOR "2")
-set(VERSION_MINOR "1.3")
+set(VERSION_MINOR "1.3f-${CMAKE_BUILD_TYPE}")
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set(CMAKE_CONFIGURATION_TYPES Debug RelWithDebInfo Release CACHE TYPE INTERNAL)
-set(CMAKE_SKIP_INSTALL_RULES ON)
+set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE TYPE INTERNAL)
 set(CMAKE_SKIP_PACKAGE_ALL_DEPENDENCY ON)
 set(CMAKE_SUPPRESS_REGENERATION ON)
-enable_testing()
-# copy CTestCustom.cmake to build dir to disable long running tests in 'make test'
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake ${CMAKE_CURRENT_BINARY_DIR})
+set(STATIC ON CACHE BOOL "Link libraries statically")
+set(BUILD_TESTS OFF CACHE BOOL "build tests")
 
-project(Iridium)
+if(BUILD_TESTS)
+    enable_testing()
+else()
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake ${CMAKE_CURRENT_BINARY_DIR})
+endif()
 
-include_directories(include src external "${CMAKE_CURRENT_BINARY_DIR}/version")
+project(iridium)
+
+include_directories(include
+    src
+    external
+    "${CMAKE_CURRENT_BINARY_DIR}/version"
+    )
 if(APPLE)
     include_directories(SYSTEM /usr/include/malloc)
     enable_language(ASM)
@@ -69,6 +78,12 @@ else()
     if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND NOT (CMAKE_C_COMPILER_VERSION VERSION_LESS 5.1))
         set(WARNINGS "${WARNINGS} -Wno-error=odr")
     endif()
+    if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND (CMAKE_C_COMPILER_VERSION VERSION_GREATER 6))
+        set(WARNINGS "${WARNINGS} -Wno-logical-op -Wno-error=terminate -Wno-error=init-self")
+    endif()
+    if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND (CMAKE_C_COMPILER_VERSION VERSION_GREATER 7))
+        set(WARNINGS "${WARNINGS} -Wno-format-truncation -Wno-implicit-fallthrough -Wno-error=stringop-overflow")
+    endif()
     set(C_WARNINGS "-Waggregate-return -Wnested-externs -Wold-style-definition -Wstrict-prototypes")
     set(CXX_WARNINGS "-Wno-reorder -Wno-missing-field-initializers")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 ${MINGW_FLAG} ${WARNINGS} ${C_WARNINGS} ${ARCH_FLAG} -maes")
@@ -84,7 +99,16 @@ else()
     else()
         set(DEBUG_FLAGS "-g3 -O0 -fno-omit-frame-pointer")
     endif()
-    set(RELEASE_FLAGS "-Ofast -DNDEBUG -Wno-unused-variable")
+
+    # release flags
+    set(RELEASE_FLAGS "-Ofast -DNDEBUG -Wno-unused-variable -Wno-uninitialized -Wno-unused-function -Wno-sign-compare")
+    if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND NOT (CMAKE_C_COMPILER_VERSION VERSION_LESS 4.8))
+        set(RELEASE_FLAGS "${RELEASE_FLAGS} -Wno-strict-aliasing -Wno-unused-but-set-variable")
+    endif()
+    if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
+        set(RELEASE_FLAGS "${RELEASE_FLAGS} -Wno-unused-private-field")
+    endif()
+
     if(NOT APPLE)
         # There is a clang bug that does not allow to compile code that uses AES-NI intrinsics if -flto is enabled
         if (CMAKE_C_COMPILER_ID STREQUAL "GNU" AND CMAKE_SYSTEM_NAME STREQUAL "Linux"
@@ -94,6 +118,11 @@ else()
             set(CMAKE_RANLIB gcc-ranlib)
         endif()
         #set(RELEASE_FLAGS "${RELEASE_FLAGS} -flto")
+    else() # remove ranlib complaining for no symbols
+        set(CMAKE_C_ARCHIVE_CREATE   "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
+        set(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
+        set(CMAKE_C_ARCHIVE_FINISH   "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
+        set(CMAKE_CXX_ARCHIVE_FINISH "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
     endif()
     #if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND NOT MINGW)
     #  set(RELEASE_FLAGS "${RELEASE_FLAGS} -fno-fat-lto-objects")
@@ -123,6 +152,7 @@ endif()
 
 set(COMMIT_ID_IN_VERSION ON CACHE BOOL "Include commit ID in version")
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/version")
+
 if (NOT COMMIT_ID_IN_VERSION)
     set(VERSION "${VERSION}-unknown")
     set(COMMIT_ID "unknown")
@@ -131,7 +161,10 @@ if (NOT COMMIT_ID_IN_VERSION)
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in" "${CMAKE_CURRENT_BINARY_DIR}/version/version.h")
     add_custom_target(version ALL)
 elseif(DEFINED COMMIT_ID_IN_VERSION)
-
+    find_package(Git QUIET)
+    if(Git_FOUND OR GIT_FOUND)
+        message(STATUS "Found Git: ${GIT_EXECUTABLE}")
+    endif()
     execute_process(
         COMMAND git rev-parse --abbrev-ref HEAD  # Get the current branch
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
@@ -147,33 +180,22 @@ elseif(DEFINED COMMIT_ID_IN_VERSION)
         )
 
     set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}")
-    message(STATUS "--------------------- Version ----------------------------")
+    message(STATUS "--------------------- Build details ----------------------------")
+    message(STATUS "Build : ${CMAKE_BUILD_TYPE}")
+    message(STATUS "Compiler : ${CMAKE_C_COMPILER_ID} version ${CMAKE_CXX_COMPILER_VERSION}")
     message(STATUS "Branch : ${GIT_BRANCH}")
     message(STATUS "Version : ${VERSION}")
     message(STATUS "Revision : ${COMMIT_ID}")
-
-        message(STATUS "Link libraries statically : ${STATIC}" )
-
-
-        message(STATUS "Portable : ${STATIC}" )
-
+    message(STATUS "Link libraries statically : ${STATIC}" )
+    message(STATUS "Portable : ${STATIC}" )
+    message(STATUS "Compile tests : " ${BUILD_TESTS})
     message(STATUS "----------------------------------------------------------")
-    #set(COMMIT_ID "${COMMIT_ID}")
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in" "${CMAKE_CURRENT_BINARY_DIR}/version/version.h")
     add_custom_target(version ALL)
-else()
-    find_package(Git QUIET)
-    if(Git_FOUND OR GIT_FOUND)
-        message(STATUS "Found Git: ${GIT_EXECUTABLE}")
-        add_custom_target(version ALL "${CMAKE_COMMAND}" "-D" "VERSION=${VERSION}" "-D" "GIT=${GIT_EXECUTABLE}" "-D" "TO=${CMAKE_CURRENT_BINARY_DIR}/version/version.h" "-P" "${CMAKE_CURRENT_SOURCE_DIR}/src/version.cmake" WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
-    else()
-        message(STATUS "WARNING: Git was not found!")
-        set(VERSION "${VERSION}-unknown")
-        configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in" "${CMAKE_CURRENT_BINARY_DIR}/version/version.h")
-        add_custom_target(version ALL)
-    endif()
 endif()
 
 add_subdirectory(external)
 add_subdirectory(src)
-add_subdirectory(tests)
+if(BUILD_TESTS)
+    add_subdirectory(tests)
+endif()

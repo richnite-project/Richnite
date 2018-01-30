@@ -1,7 +1,9 @@
 add_definitions(-DSTATICLIB)
 
-#include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR} ../version)
-include_directories(${CMAKE_SOURCE_DIR}/external/rocksdb/third-party/gtest-1.7.0/fused-src)
+if(BUILD_TESTS)
+    include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR} ../version)
+    include_directories(${CMAKE_SOURCE_DIR}/external/rocksdb/third-party/gtest-1.7.0/fused-src)
+endif()
 
 file(GLOB_RECURSE CoreTests CoreTests/*)
 file(GLOB_RECURSE CryptoTests crypto/*)

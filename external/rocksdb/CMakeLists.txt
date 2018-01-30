@@ -597,8 +597,8 @@ option(WITH_JNI "build with JNI" OFF)
 if(WITH_JNI OR JNI)
   message(STATUS "JNI library is enabled")
   add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/java)
-else()
-  message(STATUS "JNI library is disabled")
+#else()
+#  message(STATUS "JNI library is disabled")
 endif()
 
 set(TESTS
