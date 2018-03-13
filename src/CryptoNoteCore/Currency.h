@@ -165,7 +165,8 @@ private:
   uint64_t m_defaultDustThreshold;
 
   uint64_t m_difficultyTarget;
-  uint64_t m_TestnetDifficultyTarget;
+  uint64_t m_testnet_DifficultyTarget;
+
   size_t m_difficultyWindow;
   size_t m_difficultyLag;
   size_t m_difficultyCut;
@@ -188,6 +189,12 @@ private:
   uint32_t m_upgradeHeightV2;
   uint32_t m_upgradeHeightV3;
   uint32_t m_upgradeHeightV4;
+
+  uint32_t m_testnetUpgradeHeightV2;
+  uint32_t m_testnetUpgradeHeightV3;
+  uint32_t m_testnetUpgradeHeightV4;
+
+
   unsigned int m_upgradeVotingThreshold;
   uint32_t m_upgradeVotingWindow;
   uint32_t m_upgradeWindow;
@@ -242,6 +249,8 @@ public:
   CurrencyBuilder& defaultDustThreshold(uint64_t val) { m_currency.m_defaultDustThreshold = val; return *this; }
 
   CurrencyBuilder& difficultyTarget(uint64_t val) { m_currency.m_difficultyTarget = val; return *this; }
+  CurrencyBuilder& testnetDifficultyTarget(uint64_t val) { m_currency.m_testnet_DifficultyTarget = val; return *this; }
+
   CurrencyBuilder& difficultyWindow(size_t val);
   CurrencyBuilder& difficultyLag(size_t val) { m_currency.m_difficultyLag = val; return *this; }
   CurrencyBuilder& difficultyCut(size_t val) { m_currency.m_difficultyCut = val; return *this; }
@@ -264,6 +273,11 @@ public:
   CurrencyBuilder& upgradeHeightV2(uint32_t val) { m_currency.m_upgradeHeightV2 = val; return *this; }
   CurrencyBuilder& upgradeHeightV3(uint32_t val) { m_currency.m_upgradeHeightV3 = val; return *this; }
   CurrencyBuilder& upgradeHeightV4(uint32_t val) { m_currency.m_upgradeHeightV4 = val; return *this; }
+
+  CurrencyBuilder& testnetUpgradeHeightV2(uint32_t val) { m_currency.m_testnetUpgradeHeightV2 = val; return *this; }
+  CurrencyBuilder& testnetUpgradeHeightV3(uint32_t val) { m_currency.m_testnetUpgradeHeightV3 = val; return *this; }
+  CurrencyBuilder& testnetUpgradeHeightV4(uint32_t val) { m_currency.m_testnetUpgradeHeightV4 = val; return *this; }
+
   CurrencyBuilder& upgradeVotingThreshold(unsigned int val);
   CurrencyBuilder& upgradeVotingWindow(uint32_t val) { m_currency.m_upgradeVotingWindow = val; return *this; }
   CurrencyBuilder& upgradeWindow(uint32_t val);

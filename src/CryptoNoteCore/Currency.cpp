@@ -75,9 +75,10 @@ bool Currency::init() {
     }
 
     if (isTestnet()) {
-//        m_upgradeHeightV2 = 2;
-//        m_upgradeHeightV3 = 5;
-        m_TestnetDifficultyTarget = 10;
+        m_upgradeHeightV2 = m_testnetUpgradeHeightV2;
+        m_upgradeHeightV3 = m_testnetUpgradeHeightV3;
+        m_upgradeHeightV4 = m_testnetUpgradeHeightV4;
+        m_difficultyTarget = m_testnet_DifficultyTarget;
         m_blocksFileName = "testnet_" + m_blocksFileName;
         m_blockIndexesFileName = "testnet_" + m_blockIndexesFileName;
         m_txPoolFileName = "testnet_" + m_txPoolFileName;
@@ -202,7 +203,6 @@ bool Currency::getBlockReward(uint8_t blockMajorVersion, size_t medianSize, size
 
     uint64_t penalizedBaseReward = getPenalizedAmount(baseReward, medianSize, currentBlockSize);
     uint64_t penalizedFee = blockMajorVersion >= BLOCK_MAJOR_VERSION_2 ? getPenalizedAmount(fee, medianSize, currentBlockSize) : fee;
-
     emissionChange = penalizedBaseReward - (fee - penalizedFee);
     reward = penalizedBaseReward + penalizedFee;
 
@@ -511,22 +511,25 @@ Difficulty Currency::nextDifficulty(
         return 1;
     }
     double_t adjust(1.0);
-    int64_t weightedSolveTimes(0);
+    int64_t weightedSolveTimes(0),minWST(0);
     uint64_t aimedTarget(0),low,high;
     Difficulty totalWork(0),nextDiff(0);
 
     int64_t c_difficultyTarget = static_cast<int64_t>(m_difficultyTarget);
-    if (isTestnet()) {
-        c_difficultyTarget = static_cast<int64_t>(m_TestnetDifficultyTarget);
-    }
     switch (version) {
     case 3: //V3
-        adjust = 0.9909; //0,9908702198 new adjust coefficient
 
         // Here we go again
-        for (size_t i = 1; i < length; i++) {
+        adjust = 0.9909; // 0.9909 new adjust coefficient from zawy's tests, 0.9912338056 before;
+
+        if(isTestnet()){
+            adjust = pow (0.9989, (500/c_difficultyTarget));
+        }
+
+        for (int64_t i = 1; i < length; i++) {
             int64_t solveTime(0);
             solveTime = static_cast<int64_t>(timestamps[i]) - static_cast<int64_t>(timestamps[i-1]);
+
             if (solveTime >  6 * c_difficultyTarget){ //  high limit
                 solveTime =  6 * c_difficultyTarget;
             }
@@ -536,26 +539,22 @@ Difficulty Currency::nextDifficulty(
             weightedSolveTimes +=  solveTime * i;
         }
 
-        aimedTarget = adjust * ((length + 1) / 2.0) * c_difficultyTarget ;
-
-        if (weightedSolveTimes < static_cast<int64_t>(c_difficultyTarget * length / 2)) {
-            weightedSolveTimes = c_difficultyTarget * length / 2;
+//      keep weightedSolveTimes in case strange solvetimes occurred in an unforeseeable way  : min N*(N+1)/2*T/4
+        minWST = c_difficultyTarget * length*(length+1)/8;
+        if(weightedSolveTimes < minWST){
+            weightedSolveTimes = minWST;
         }
 
         totalWork = cumulativeDifficulties.back() - cumulativeDifficulties.front();
+        aimedTarget = adjust * ((length + 1) / 2.0) * c_difficultyTarget ;
+
         assert(totalWork > 0);
         low = mul128(totalWork, aimedTarget, &high);
 
         if (high != 0) {
             return 0;
         }
-
         nextDiff = low/weightedSolveTimes;
-
-        if (isTestnet()) {
-            logger(Logging::INFO,RED) << "Height=" << blockIndex << ", next Diff=" << nextDiff << ", HR (H/s)=" << static_cast<double_t>(static_cast<double_t>(nextDiff)/c_difficultyTarget);
-        }
-
         break;
 
     case 2: //V2
@@ -580,6 +579,9 @@ Difficulty Currency::nextDifficulty(
             return 0;
         }
         nextDiff = low/weightedSolveTimes;
+        if (isTestnet()) {
+            logger(Logging::INFO,BRIGHT_WHITE) << "Target=" << c_difficultyTarget << " Version=" << static_cast<int64_t>(version) << " Height=" << blockIndex << ", next Diff=" << nextDiff << ", HR (H/s)=" << static_cast<double_t>(static_cast<double_t>(nextDiff)/c_difficultyTarget);
+        }
         break;
 
     case 1: //V1
@@ -619,6 +621,10 @@ Difficulty Currency::nextDifficulty(
         }
         nextDiff = (low + timeSpan - 1) / timeSpan;  // with version
         break;
+    }
+
+    if(nextDiff < 1) {
+        nextDiff = 1;
     }
 
     return nextDiff;
@@ -720,6 +726,7 @@ Currency::Currency(Currency&& currency) :
     m_mininumFee(currency.m_mininumFee),
     m_defaultDustThreshold(currency.m_defaultDustThreshold),
     m_difficultyTarget(currency.m_difficultyTarget),
+    m_testnet_DifficultyTarget(currency.m_testnet_DifficultyTarget),
     m_difficultyWindow(currency.m_difficultyWindow),
     m_difficultyLag(currency.m_difficultyLag),
     m_difficultyCut(currency.m_difficultyCut),
@@ -736,6 +743,9 @@ Currency::Currency(Currency&& currency) :
     m_upgradeHeightV2(currency.m_upgradeHeightV2),
     m_upgradeHeightV3(currency.m_upgradeHeightV3),
     m_upgradeHeightV4(currency.m_upgradeHeightV4),
+    m_testnetUpgradeHeightV2(currency.m_testnetUpgradeHeightV2),
+    m_testnetUpgradeHeightV3(currency.m_testnetUpgradeHeightV3),
+    m_testnetUpgradeHeightV4(currency.m_testnetUpgradeHeightV4),
     m_upgradeVotingThreshold(currency.m_upgradeVotingThreshold),
     m_upgradeVotingWindow(currency.m_upgradeVotingWindow),
     m_upgradeWindow(currency.m_upgradeWindow),
@@ -771,6 +781,8 @@ CurrencyBuilder::CurrencyBuilder(Logging::ILogger& log) : m_currency(log) {
     defaultDustThreshold(parameters::DEFAULT_DUST_THRESHOLD);
 
     difficultyTarget(parameters::DIFFICULTY_TARGET);
+    testnetDifficultyTarget(parameters::TESTNET_DIFFICULTY_TARGET);
+
     difficultyWindow(parameters::DIFFICULTY_WINDOW);
     difficultyLag(parameters::DIFFICULTY_LAG);
     difficultyCut(parameters::DIFFICULTY_CUT);
@@ -793,6 +805,11 @@ CurrencyBuilder::CurrencyBuilder(Logging::ILogger& log) : m_currency(log) {
     upgradeHeightV2(parameters::UPGRADE_HEIGHT_V2);
     upgradeHeightV3(parameters::UPGRADE_HEIGHT_V3);
     upgradeHeightV4(parameters::UPGRADE_HEIGHT_V4);
+
+    testnetUpgradeHeightV2(parameters::TESTNET_UPGRADE_HEIGHT_V2);
+    testnetUpgradeHeightV3(parameters::TESTNET_UPGRADE_HEIGHT_V3);
+    testnetUpgradeHeightV4(parameters::TESTNET_UPGRADE_HEIGHT_V4);
+
     upgradeVotingThreshold(parameters::UPGRADE_VOTING_THRESHOLD);
     upgradeVotingWindow(parameters::UPGRADE_VOTING_WINDOW);
     upgradeWindow(parameters::UPGRADE_WINDOW);
