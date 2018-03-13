@@ -47,9 +47,6 @@ public:
   unsigned int emissionSpeedFactor() const { return m_emissionSpeedFactor; }
 
   size_t rewardBlocksWindow() const { return m_rewardBlocksWindow; }
-  uint32_t zawyDifficultyBlockIndex() const { return m_zawyDifficultyBlockIndex; }
-  size_t zawyDifficultyV2() const { return m_zawyDifficultyV2; }
-  uint8_t zawyDifficultyBlockVersion() const { return m_zawyDifficultyBlockVersion; }
   size_t blockGrantedFullRewardZone() const { return m_blockGrantedFullRewardZone; }
   size_t blockGrantedFullRewardZoneByBlockVersion(uint8_t blockMajorVersion) const;
   size_t minerTxBlobReservedSize() const { return m_minerTxBlobReservedSize; }
@@ -156,7 +153,6 @@ private:
   unsigned int m_emissionSpeedFactor;
 
   size_t m_rewardBlocksWindow;
-  uint32_t m_zawyDifficultyBlockIndex;
   size_t m_zawyDifficultyV2;
   uint8_t m_zawyDifficultyBlockVersion;
   size_t m_blockGrantedFullRewardZone;
@@ -169,6 +165,8 @@ private:
   uint64_t m_defaultDustThreshold;
 
   uint64_t m_difficultyTarget;
+  uint64_t m_testnet_DifficultyTarget;
+
   size_t m_difficultyWindow;
   size_t m_difficultyLag;
   size_t m_difficultyCut;
@@ -190,6 +188,13 @@ private:
 
   uint32_t m_upgradeHeightV2;
   uint32_t m_upgradeHeightV3;
+  uint32_t m_upgradeHeightV4;
+
+  uint32_t m_testnetUpgradeHeightV2;
+  uint32_t m_testnetUpgradeHeightV3;
+  uint32_t m_testnetUpgradeHeightV4;
+
+
   unsigned int m_upgradeVotingThreshold;
   uint32_t m_upgradeVotingWindow;
   uint32_t m_upgradeWindow;
@@ -235,9 +240,6 @@ public:
   CurrencyBuilder& emissionSpeedFactor(unsigned int val);
 
   CurrencyBuilder& rewardBlocksWindow(size_t val) { m_currency.m_rewardBlocksWindow = val; return *this; }
-  CurrencyBuilder& zawyDifficultyBlockIndex(uint32_t val) { m_currency.m_zawyDifficultyBlockIndex = val; return *this; }
-  CurrencyBuilder& zawyDifficultyV2(size_t val) { m_currency.m_zawyDifficultyV2 = val; return *this; }
-  CurrencyBuilder& zawyDifficultyBlockVersion(uint8_t val) { m_currency.m_zawyDifficultyBlockVersion = val; return *this; }
   CurrencyBuilder& blockGrantedFullRewardZone(size_t val) { m_currency.m_blockGrantedFullRewardZone = val; return *this; }
   CurrencyBuilder& minerTxBlobReservedSize(size_t val) { m_currency.m_minerTxBlobReservedSize = val; return *this; }
 
@@ -247,6 +249,8 @@ public:
   CurrencyBuilder& defaultDustThreshold(uint64_t val) { m_currency.m_defaultDustThreshold = val; return *this; }
 
   CurrencyBuilder& difficultyTarget(uint64_t val) { m_currency.m_difficultyTarget = val; return *this; }
+  CurrencyBuilder& testnetDifficultyTarget(uint64_t val) { m_currency.m_testnet_DifficultyTarget = val; return *this; }
+
   CurrencyBuilder& difficultyWindow(size_t val);
   CurrencyBuilder& difficultyLag(size_t val) { m_currency.m_difficultyLag = val; return *this; }
   CurrencyBuilder& difficultyCut(size_t val) { m_currency.m_difficultyCut = val; return *this; }
@@ -268,6 +272,12 @@ public:
 
   CurrencyBuilder& upgradeHeightV2(uint32_t val) { m_currency.m_upgradeHeightV2 = val; return *this; }
   CurrencyBuilder& upgradeHeightV3(uint32_t val) { m_currency.m_upgradeHeightV3 = val; return *this; }
+  CurrencyBuilder& upgradeHeightV4(uint32_t val) { m_currency.m_upgradeHeightV4 = val; return *this; }
+
+  CurrencyBuilder& testnetUpgradeHeightV2(uint32_t val) { m_currency.m_testnetUpgradeHeightV2 = val; return *this; }
+  CurrencyBuilder& testnetUpgradeHeightV3(uint32_t val) { m_currency.m_testnetUpgradeHeightV3 = val; return *this; }
+  CurrencyBuilder& testnetUpgradeHeightV4(uint32_t val) { m_currency.m_testnetUpgradeHeightV4 = val; return *this; }
+
   CurrencyBuilder& upgradeVotingThreshold(unsigned int val);
   CurrencyBuilder& upgradeVotingWindow(uint32_t val) { m_currency.m_upgradeVotingWindow = val; return *this; }
   CurrencyBuilder& upgradeWindow(uint32_t val);
