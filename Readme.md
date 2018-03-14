@@ -20,8 +20,9 @@ Libraries needed : boost 1.60
 How to compile this : 
 ```
 $ git clone https://github.com/iridiumdev/iridium.git
+$ cd iridium
 $ mkdir iridium-build
 $ cd iridium-build
-$ cmake -D STATIC=ON -D CMAKE_BUILD_TYPE=RELEASE ../iridium
+$ cmake -D STATIC=ON -D CMAKE_BUILD_TYPE=RELEASE ..
 $ PORTABLE=1 make
 ```
