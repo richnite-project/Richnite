@@ -15,6 +15,8 @@ This is the iridium core source code and binary release.
 [iridium graphicals elements](https://github.com/iridiumdev/iridium-graphics)
 
 
+Libraries needed : boost 1.60
+
 How to compile this : 
 ```
 $ git clone https://github.com/iridiumdev/iridium.git
