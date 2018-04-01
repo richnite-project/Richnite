@@ -265,6 +265,7 @@ struct COMMAND_RPC_GET_INFO {
 
   struct response {
     std::string status;
+    std::string version;
     uint64_t height;
     uint64_t difficulty;
     uint64_t tx_count;
@@ -278,6 +279,7 @@ struct COMMAND_RPC_GET_INFO {
 
     void serialize(ISerializer &s) {
       KV_MEMBER(status)
+      KV_MEMBER(version)
       KV_MEMBER(height)
       KV_MEMBER(difficulty)
       KV_MEMBER(tx_count)
