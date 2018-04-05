@@ -33,6 +33,7 @@
 
 #include "CoreRpcServerErrorCodes.h"
 #include "JsonRpc.h"
+#include "version.h"
 
 #undef ERROR
 
@@ -436,6 +437,7 @@ bool RpcServer::on_get_info(const COMMAND_RPC_GET_INFO::request& req, COMMAND_RP
   res.grey_peerlist_size = m_p2p.getPeerlistManager().get_gray_peers_count();
   res.last_known_block_index = std::max(static_cast<uint32_t>(1), m_protocol.getObservedHeight()) - 1;
   res.status = CORE_RPC_STATUS_OK;
+  res.version = PROJECT_VERSION_LONG;
   return true;
 }
 
@@ -541,6 +543,7 @@ bool RpcServer::f_on_blocks_list_json(const F_COMMAND_RPC_GET_BLOCKS_LIST::reque
     block_short.cumul_size = blkDetails.blockSize;
     block_short.timestamp = blk.timestamp;
     block_short.difficulty = blkDetails.difficulty;
+    block_short.reward = blkDetails.reward;
     block_short.height = i;
     block_short.hash = Common::podToHex(block_hash);
     block_short.tx_count = blk.transactionHashes.size() + 1;
