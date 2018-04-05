@@ -265,6 +265,7 @@ struct COMMAND_RPC_GET_INFO {
 
   struct response {
     std::string status;
+    std::string version;
     uint64_t height;
     uint64_t difficulty;
     uint64_t tx_count;
@@ -278,6 +279,7 @@ struct COMMAND_RPC_GET_INFO {
 
     void serialize(ISerializer &s) {
       KV_MEMBER(status)
+      KV_MEMBER(version)
       KV_MEMBER(height)
       KV_MEMBER(difficulty)
       KV_MEMBER(tx_count)
@@ -444,9 +446,10 @@ struct f_block_short_response {
   uint64_t timestamp;
   uint32_t height;
   std::string hash;
-  uint64_t difficulty;
   uint64_t tx_count;
   uint64_t cumul_size;
+  uint64_t difficulty;
+  uint64_t reward;
 
   void serialize(ISerializer &s) {
     KV_MEMBER(timestamp)
@@ -455,6 +458,7 @@ struct f_block_short_response {
     KV_MEMBER(cumul_size)
     KV_MEMBER(tx_count)
     KV_MEMBER(difficulty)
+    KV_MEMBER(reward)
   }
 };
 
