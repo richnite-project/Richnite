@@ -127,6 +127,7 @@ std::unordered_map<std::string, RpcServer::RpcHandler<RpcServer::HandlerFunction
   { "/gettransactions", { jsonMethod<COMMAND_RPC_GET_TRANSACTIONS>(&RpcServer::on_get_transactions), false } },
   { "/sendrawtransaction", { jsonMethod<COMMAND_RPC_SEND_RAW_TX>(&RpcServer::on_send_raw_tx), false } },
   { "/stop_daemon", { jsonMethod<COMMAND_RPC_STOP_DAEMON>(&RpcServer::on_stop_daemon), true } },
+  { "/get_generated_coins", { jsonMethod<COMMAND_RPC_GET_ISSUED_COINS>(&RpcServer::on_get_issued), true } },
 
   // json rpc
   { "/json_rpc", { std::bind(&RpcServer::processJsonRpcRequest, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), true } }
@@ -447,6 +448,14 @@ bool RpcServer::on_get_height(const COMMAND_RPC_GET_HEIGHT::request& req, COMMAN
   return true;
 }
 
+bool RpcServer::on_get_issued(const COMMAND_RPC_GET_ISSUED_COINS::request& req, COMMAND_RPC_GET_ISSUED_COINS::response& res) {
+    Hash hash = m_core.getBlockHashByIndex(m_core.getTopBlockIndex());
+    BlockDetails blkDetails = m_core.getBlockDetails(hash);
+    res.alreadyGeneratedCoins = std::to_string(blkDetails.alreadyGeneratedCoins);
+    res.status = CORE_RPC_STATUS_OK;
+    return true;
+}
+
 bool RpcServer::on_get_transactions(const COMMAND_RPC_GET_TRANSACTIONS::request& req, COMMAND_RPC_GET_TRANSACTIONS::response& res) {
   std::vector<Hash> vh;
   for (const auto& tx_hex_str : req.txs_hashes) {
@@ -560,7 +569,6 @@ bool RpcServer::f_on_blocks_list_json(const F_COMMAND_RPC_GET_BLOCKS_LIST::reque
 
 bool RpcServer::f_on_block_json(const F_COMMAND_RPC_GET_BLOCK_DETAILS::request& req, F_COMMAND_RPC_GET_BLOCK_DETAILS::response& res) {
   Hash hash;
-
   try {
     uint32_t height = boost::lexical_cast<uint32_t>(req.hash);
     hash = m_core.getBlockHashByIndex(height);
