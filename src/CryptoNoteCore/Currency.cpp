@@ -753,6 +753,9 @@ Currency::Currency(Currency&& currency) :
     m_blockIndexesFileName(currency.m_blockIndexesFileName),
     m_txPoolFileName(currency.m_txPoolFileName),
     m_testnet(currency.m_testnet),
+    m_minMixin(currency.m_minMixin),
+    m_maxMixin(currency.m_maxMixin),
+    m_mandatoryMixinBlockVersion(currency.m_mandatoryMixinBlockVersion),
     genesisBlockTemplate(std::move(currency.genesisBlockTemplate)),
     cachedGenesisBlock(new CachedBlock(genesisBlockTemplate)),
     logger(currency.logger) {
@@ -772,6 +775,11 @@ CurrencyBuilder::CurrencyBuilder(Logging::ILogger& log) : m_currency(log) {
     emissionSpeedFactor(parameters::EMISSION_SPEED_FACTOR);
 
     rewardBlocksWindow(parameters::CRYPTONOTE_REWARD_BLOCKS_WINDOW);
+
+    minMixin(parameters::MIN_MIXIN);
+    maxMixin(parameters::MAX_MIXIN);
+    mandatoryMixinBlockVersion(parameters::MANDATORY_MIXIN_BLOCK_VERSION);
+
     blockGrantedFullRewardZone(parameters::CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE);
     minerTxBlobReservedSize(parameters::CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE);
 

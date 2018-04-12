@@ -146,6 +146,8 @@ private:
   bool extractTransactions(const std::vector<BinaryArray>& rawTransactions, std::vector<CachedTransaction>& transactions, uint64_t& cumulativeSize);
 
   std::error_code validateSemantic(const Transaction& transaction, uint64_t& fee, uint32_t blockIndex);
+  bool f_getMixin(const Transaction& transaction, uint64_t& mixin);
+  std::error_code validateMixin(const Transaction& transaction, uint8_t majorBlockVersion);
   std::error_code validateTransaction(const CachedTransaction& transaction, TransactionValidatorState& state, IBlockchainCache* cache, uint64_t& fee, uint32_t blockIndex);
   
   uint32_t findBlockchainSupplement(const std::vector<Crypto::Hash>& remoteBlockIds) const;
