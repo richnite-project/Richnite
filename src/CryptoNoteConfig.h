@@ -43,9 +43,7 @@ static_assert(EMISSION_SPEED_FACTOR <= 8 * sizeof(uint64_t), "Bad EMISSION_SPEED
 const size_t   CRYPTONOTE_REWARD_BLOCKS_WINDOW               = 100;
 const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE     = 20000;
 const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V1  = 20000;
-const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V2  = 60000; // increasing to allow bigger tx
-const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V3  = CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V2; // idem
-const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_CURRENT = CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V3;
+const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_CURRENT = 60000; // increasing to allow bigger tx
 const size_t   CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE        = 600;
 const size_t   CRYPTONOTE_DISPLAY_DECIMAL_POINT              = 8;
 const uint64_t MINIMUM_FEE                                   = UINT64_C(5000);
@@ -54,17 +52,11 @@ const uint64_t DEFAULT_DUST_THRESHOLD                        = UINT64_C(5000);
 const uint64_t DIFFICULTY_TARGET                             = 175;
 const uint64_t EXPECTED_NUMBER_OF_BLOCKS_PER_DAY             = 24 * 60 * 60 / DIFFICULTY_TARGET;
 const size_t   DIFFICULTY_WINDOW                             = EXPECTED_NUMBER_OF_BLOCKS_PER_DAY;
-const size_t   DIFFICULTY_WINDOW_V1                          = DIFFICULTY_WINDOW;
 const size_t   DIFFICULTY_WINDOW_V2                          = 60;
-const size_t   DIFFICULTY_WINDOW_V3                          = DIFFICULTY_WINDOW_V2;
+const size_t   DIFFICULTY_WINDOW_V4                          = 61;
 const size_t   DIFFICULTY_CUT                                = 60;
-const size_t   DIFFICULTY_CUT_V1                             = DIFFICULTY_CUT;
-const size_t   DIFFICULTY_CUT_V2                             = DIFFICULTY_CUT;
-const size_t   DIFFICULTY_CUT_V3                             = DIFFICULTY_CUT;
 const size_t   DIFFICULTY_LAG                                = 15;
-const size_t   DIFFICULTY_LAG_V1                             = DIFFICULTY_LAG;
 const size_t   DIFFICULTY_LAG_V2                             = 0;
-const size_t   DIFFICULTY_LAG_V3                             = DIFFICULTY_LAG_V2;
 
 static_assert(2 * DIFFICULTY_CUT <= DIFFICULTY_WINDOW - 2, "Bad DIFFICULTY_WINDOW or DIFFICULTY_CUT");
 
@@ -103,8 +95,8 @@ const char     MINER_CONFIG_FILE_NAME[]                      = "miner_conf.json"
 
 // testnet setup
 const uint32_t TESTNET_UPGRADE_HEIGHT_V2                             = 2;
-const uint32_t TESTNET_UPGRADE_HEIGHT_V3                             = 10;
-const uint32_t TESTNET_UPGRADE_HEIGHT_V4                             = -1;
+const uint32_t TESTNET_UPGRADE_HEIGHT_V3                             = 5;
+const uint32_t TESTNET_UPGRADE_HEIGHT_V4                             = 10;
 const uint64_t TESTNET_DIFFICULTY_TARGET                             = 15; // target in testnet mode
 
 } // parameters

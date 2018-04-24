@@ -82,6 +82,10 @@ bool Currency::init() {
         m_blocksFileName = "testnet_" + m_blocksFileName;
         m_blockIndexesFileName = "testnet_" + m_blockIndexesFileName;
         m_txPoolFileName = "testnet_" + m_txPoolFileName;
+        logger(INFO, RED) << "V2 Height : " << m_upgradeHeightV2;
+        logger(INFO, RED) << "V3 Height : " << m_upgradeHeightV3;
+        logger(INFO, RED) << "V4 Height : " << m_upgradeHeightV4;
+        logger(INFO, RED) << "Target : " << m_difficultyTarget << "s";
     }
 
     return true;
@@ -124,38 +128,24 @@ bool Currency::generateGenesisBlock() {
 
 size_t Currency::difficultyWindowByBlockVersion(uint8_t blockMajorVersion) const {
     if (blockMajorVersion >= BLOCK_MAJOR_VERSION_4) {
-        return m_difficultyWindow;
-    } else if (blockMajorVersion == BLOCK_MAJOR_VERSION_3) {
-        return CryptoNote::parameters::DIFFICULTY_WINDOW_V3;
-    } else if (blockMajorVersion == BLOCK_MAJOR_VERSION_2) {
+        return CryptoNote::parameters::DIFFICULTY_WINDOW_V4;
+    } else if (blockMajorVersion == BLOCK_MAJOR_VERSION_2 || blockMajorVersion == BLOCK_MAJOR_VERSION_3) {
         return CryptoNote::parameters::DIFFICULTY_WINDOW_V2;
     } else {
-        return CryptoNote::parameters::DIFFICULTY_WINDOW_V1;
+        return CryptoNote::parameters::DIFFICULTY_WINDOW;
     }
 }
 
 size_t Currency::difficultyLagByBlockVersion(uint8_t blockMajorVersion) const {
-    if (blockMajorVersion >= BLOCK_MAJOR_VERSION_4) {
-        return m_difficultyLag;
-    } else if (blockMajorVersion == BLOCK_MAJOR_VERSION_3) {
-        return CryptoNote::parameters::DIFFICULTY_LAG_V3;
-    } else if (blockMajorVersion == BLOCK_MAJOR_VERSION_2) {
-        return CryptoNote::parameters::DIFFICULTY_LAG_V2;
+    if (blockMajorVersion >= BLOCK_MAJOR_VERSION_2) {
+        return CryptoNote::parameters::DIFFICULTY_LAG_V2; // lag = 0 since V2
     } else {
-        return CryptoNote::parameters::DIFFICULTY_LAG_V1;
+        return CryptoNote::parameters::DIFFICULTY_LAG;
     }
 }
 
 size_t Currency::difficultyCutByBlockVersion(uint8_t blockMajorVersion) const {
-    if (blockMajorVersion >= BLOCK_MAJOR_VERSION_4) {
-        return m_difficultyCut;
-    } else if (blockMajorVersion == BLOCK_MAJOR_VERSION_3) {
-        return CryptoNote::parameters::DIFFICULTY_CUT_V3;
-    } else if (blockMajorVersion == BLOCK_MAJOR_VERSION_2) {
-        return CryptoNote::parameters::DIFFICULTY_CUT_V2;
-    } else {
-        return CryptoNote::parameters::DIFFICULTY_CUT_V1;
-    }
+        return CryptoNote::parameters::DIFFICULTY_CUT;
 }
 
 size_t Currency::difficultyBlocksCountByBlockVersion(uint8_t blockMajorVersion) const {
@@ -163,12 +153,8 @@ size_t Currency::difficultyBlocksCountByBlockVersion(uint8_t blockMajorVersion) 
 }
 
 size_t Currency::blockGrantedFullRewardZoneByBlockVersion(uint8_t blockMajorVersion) const {
-    if (blockMajorVersion >= BLOCK_MAJOR_VERSION_4) {
-        return m_blockGrantedFullRewardZone;
-    } else if (blockMajorVersion == BLOCK_MAJOR_VERSION_3) {
-        return CryptoNote::parameters::CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V3;
-    } else if (blockMajorVersion == BLOCK_MAJOR_VERSION_2) {
-        return CryptoNote::parameters::CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V2;
+    if (blockMajorVersion >= BLOCK_MAJOR_VERSION_2) {
+        return CryptoNote::parameters::CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_CURRENT; // does not change since V2
     } else {
         return CryptoNote::parameters::CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V1;
     }
@@ -678,6 +664,7 @@ bool Currency::checkProofOfWork(Crypto::cn_context& context, const CachedBlock& 
 
     case BLOCK_MAJOR_VERSION_2:
     case BLOCK_MAJOR_VERSION_3:
+    case BLOCK_MAJOR_VERSION_4:
         return checkProofOfWorkV2(context, block, currentDiffic);
     }
 
