@@ -1363,7 +1363,7 @@ bool Core::f_getMixin(const Transaction& transaction, uint64_t& mixin) {
 std::error_code Core::validateMixin(const Transaction& transaction, uint8_t majorBlockVersion) {
     uint64_t mixin = 0;
     f_getMixin(transaction, mixin);
-    if (currency.mandatoryMixinBlockVersion() >= majorBlockVersion) {
+    if (majorBlockVersion >= currency.mandatoryMixinBlockVersion()) {
         if(mixin < currency.minMixin()){
             return error::TransactionValidationError::MIXIN_COUNT_TOO_SMALL;
         }
