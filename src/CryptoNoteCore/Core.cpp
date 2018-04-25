@@ -639,8 +639,7 @@ std::error_code Core::addBlock(const CachedBlock& cachedBlock, RawBlock&& rawBlo
       logger(Logging::WARNING) << "Checkpoint block hash mismatch for block " << cachedBlock.getBlockHash();
       return error::BlockValidationError::CHECKPOINT_BLOCK_HASH_MISMATCH;
     }
-  } else if (previousBlockIndex > 8500 && !currency.checkProofOfWork(cryptoContext, cachedBlock, currentDifficulty)) {
-    // Iridium hack -- between blocks 6358 and 8550 difficulty checks were turned off (bug)
+  } else if (!currency.checkProofOfWork(cryptoContext, cachedBlock, currentDifficulty)) {
     logger(Logging::WARNING) << "Proof of work too weak for block " << cachedBlock.getBlockHash()
 			     << " Diff: " << currentDifficulty;
     return error::BlockValidationError::PROOF_OF_WORK_TOO_WEAK;
