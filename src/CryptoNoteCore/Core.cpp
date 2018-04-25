@@ -1241,7 +1241,15 @@ std::error_code Core::validateTransaction(const CachedTransaction& cachedTransac
                                           IBlockchainCache* cache, uint64_t& fee, uint32_t blockIndex) {
   // TransactionValidatorState currentState;
   const auto& transaction = cachedTransaction.getTransaction();
-auto error = validateSemantic(transaction, fee, blockIndex);
+  uint8_t blockMajorVersion = getBlockMajorVersionForHeight(blockIndex);
+  auto error_mixin = validateMixin(transaction, blockMajorVersion);
+
+  if (error_mixin != error::TransactionValidationError::VALIDATION_SUCCESS) {
+      return error_mixin;
+  }
+
+  auto error = validateSemantic(transaction, fee, blockIndex);
+
   if (error != error::TransactionValidationError::VALIDATION_SUCCESS) {
     return error;
   }
@@ -1335,6 +1343,34 @@ auto error = validateSemantic(transaction, fee, blockIndex);
   }
 
   return error::TransactionValidationError::VALIDATION_SUCCESS;
+}
+
+bool Core::f_getMixin(const Transaction& transaction, uint64_t& mixin) {
+    mixin = 0;
+    for (const TransactionInput& txin : transaction.inputs) {
+        if (txin.type() != typeid(KeyInput)) {
+            continue;
+        }
+        uint64_t currentMixin = boost::get<KeyInput>(txin).outputIndexes.size();
+        if (currentMixin > mixin) {
+            mixin = currentMixin;
+        }
+    }
+    return true;
+}
+
+std::error_code Core::validateMixin(const Transaction& transaction, uint8_t majorBlockVersion) {
+    uint64_t mixin = 0;
+    f_getMixin(transaction, mixin);
+    if (majorBlockVersion >= currency.mandatoryMixinBlockVersion()) {
+        if(mixin < currency.minMixin()){
+            return error::TransactionValidationError::MIXIN_COUNT_TOO_SMALL;
+        }
+        if(mixin > currency.maxMixin()){
+            return error::TransactionValidationError::MIXIN_COUNT_TOO_HIGH;
+        }
+    }
+    return error::TransactionValidationError::VALIDATION_SUCCESS;
 }
 
 std::error_code Core::validateSemantic(const Transaction& transaction, uint64_t& fee, uint32_t blockIndex) {

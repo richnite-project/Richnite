@@ -30,6 +30,8 @@ enum class TransactionValidationError {
   INPUT_EMPTY_OUTPUT_USAGE,
   INPUT_INVALID_DOMAIN_KEYIMAGES,
   INPUT_IDENTICAL_KEYIMAGES,
+  MIXIN_COUNT_TOO_SMALL,
+  MIXIN_COUNT_TOO_HIGH,
   INPUT_IDENTICAL_OUTPUT_INDEXES,
   INPUT_KEYIMAGE_ALREADY_SPENT,
   INPUT_MULTISIGNATURE_ALREADY_SPENT,
@@ -73,6 +75,8 @@ public:
       case TransactionValidationError::INPUT_UNKNOWN_TYPE: return "Transaction has input with unknown type";
       case TransactionValidationError::INPUT_EMPTY_OUTPUT_USAGE: return "Transaction's input uses empty output";
       case TransactionValidationError::INPUT_IDENTICAL_KEYIMAGES: return "Transaction has identical key images";
+      case TransactionValidationError::MIXIN_COUNT_TOO_SMALL: return "MixIn count is below the required minimum";
+      case TransactionValidationError::MIXIN_COUNT_TOO_HIGH: return "MixIn count is over the maximimum allowed";
       case TransactionValidationError::INPUT_IDENTICAL_OUTPUT_INDEXES: return "Transaction has identical output indexes";
       case TransactionValidationError::INPUT_KEYIMAGE_ALREADY_SPENT: return "Transaction uses spent key image";
       case TransactionValidationError::INPUT_MULTISIGNATURE_ALREADY_SPENT: return "Transaction uses spent multisignature";

@@ -38,6 +38,12 @@ const uint64_t MONEY_SUPPLY                                  = UINT64_C(25000000
 const size_t CRYPTONOTE_COIN_VERSION                         = 1;
 const unsigned EMISSION_SPEED_FACTOR                         = 18;
 
+// mandatory mixin V4
+const uint8_t MANDATORY_MIXIN_BLOCK_VERSION                  = 4;
+const size_t MIN_MIXIN                                       = 2;
+const size_t MAX_MIXIN                                       = 10;
+
+
 static_assert(EMISSION_SPEED_FACTOR <= 8 * sizeof(uint64_t), "Bad EMISSION_SPEED_FACTOR");
 
 const size_t   CRYPTONOTE_REWARD_BLOCKS_WINDOW               = 100;
