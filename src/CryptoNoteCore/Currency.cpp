@@ -18,7 +18,6 @@
 #include "Currency.h"
 #include <cctype>
 #include <boost/algorithm/string/trim.hpp>
-#include <boost/math/special_functions/round.hpp>
 #include <boost/lexical_cast.hpp>
 #include "../Common/Math.h"
 #include "../Common/Base58.h"
@@ -466,55 +465,11 @@ Difficulty Currency::nextDifficulty(
     return nextDiff;
 }
 
-// Not used, for testing implementations only
-Difficulty Currency::nextDifficultyTest(
-        uint8_t &version,
-        uint32_t &blockIndex,
-        std::vector<uint64_t> timestamps,
-        std::vector<Difficulty> cumulativeDifficulties
-        ) const {
-    const int64_t T = static_cast<int64_t>(m_difficultyTarget);
-    size_t N = difficultyWindowByBlockVersion(version) - 1;
-    size_t length = timestamps.size();
-    assert(length == cumulative_difficulties.size());
-    assert(length <= CryptoNote::parameters::DIFFICULTY_WINDOW_V4);
-    // If new coin, just "give away" first 5 blocks at low difficulty
-    if (length < 6) {
-        return  1;
-    } else if (length < N + 1) {
-        N = length - 1;
-    }
-    // init variables
-    const double adjust = 0.998;
-    const double k = N * (N + 1) / 2;
-    double LWMA(0), sum_inverse_D(0), harmonic_mean_D(0), nextDifficulty(0);
-    int64_t solveTime(0), sumSolvetimes(0);
-    uint64_t difficulty(0);
-    Difficulty next_difficulty(0);
-    for (size_t i = 1; i <= N; i++) {
-        solveTime = static_cast<int64_t>(timestamps[i]) - static_cast<int64_t>(timestamps[i - 1]);
-        solveTime = std::min<int64_t>((T * 7), std::max<int64_t>(solveTime, (-7 * T)));
-        difficulty = cumulativeDifficulties[i] - cumulativeDifficulties[i - 1];
-        LWMA += static_cast<int64_t>(solveTime * i) / k;
-        sum_inverse_D += 1 / static_cast<double>(difficulty);
-        sumSolvetimes+=solveTime;
-    }
-    logger(Logging::INFO,BRIGHT_GREEN) << "LWMA before=" << LWMA;
-
-    // Keep LWMA sane in case something unforeseen occurs.
-    if (static_cast<int64_t>(boost::math::round(LWMA)) < 1){
-        LWMA = static_cast<double>(T) / 20;
-    }
-    logger(Logging::INFO,BRIGHT_BLUE) << "LWMA AFTER=" << LWMA;
-    harmonic_mean_D = N / sum_inverse_D * adjust;
-    nextDifficulty = harmonic_mean_D * T / LWMA;
-    next_difficulty = static_cast<uint64_t>(nextDifficulty);
-    if (isTestnet()) {
-        logger(Logging::INFO,BRIGHT_BLUE) << "average=" << static_cast<double>(static_cast<double>(sumSolvetimes)/N);
-        logger(Logging::INFO,BRIGHT_WHITE) << "Target=" << T << " Version=" << static_cast<int64_t>(version) << " Height=" << blockIndex << ", next Diff=" << next_difficulty << ", HR (H/s)=" << static_cast<double>(nextDifficulty/T);
-    }
-    return next_difficulty;
-}
+// LWMA difficulty algorithm
+// Copyright (c) 2017-2018 Zawy
+// MIT license http://www.opensource.org/licenses/mit-license.php.
+// Tom Harding, Karbowanec, Masari, Bitcoin Gold, and Bitcoin Candy have contributed.
+// https://github.com/zawy12/difficulty-algorithms/issues/3
 
 Difficulty Currency::nextDifficultyV4(
         uint8_t &version,
