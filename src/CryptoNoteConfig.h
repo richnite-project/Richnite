@@ -86,7 +86,7 @@ const uint32_t IRIDIUM_REWARD_ADJUSTMENT_BLOCK               = 8560;
 
 const uint32_t UPGRADE_HEIGHT_V2                             = 69500;
 const uint32_t UPGRADE_HEIGHT_V3                             = 95250;
-const uint32_t UPGRADE_HEIGHT_V4                             = -1;
+const uint32_t UPGRADE_HEIGHT_V4                             = 114250;
 const unsigned UPGRADE_VOTING_THRESHOLD                      = 90;               // percent
 const uint32_t UPGRADE_VOTING_WINDOW                         = EXPECTED_NUMBER_OF_BLOCKS_PER_DAY;  // blocks
 const uint32_t UPGRADE_WINDOW                                = EXPECTED_NUMBER_OF_BLOCKS_PER_DAY;  // blocks
