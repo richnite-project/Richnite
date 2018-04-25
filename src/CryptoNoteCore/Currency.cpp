@@ -18,6 +18,7 @@
 #include "Currency.h"
 #include <cctype>
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/math/special_functions/round.hpp>
 #include <boost/lexical_cast.hpp>
 #include "../Common/Math.h"
 #include "../Common/Base58.h"
