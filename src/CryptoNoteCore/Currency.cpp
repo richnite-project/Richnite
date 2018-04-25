@@ -450,22 +450,14 @@ Difficulty Currency::nextDifficulty(
         std::vector<uint64_t> timestamps,
         std::vector<Difficulty> cumulativeDifficulties
         ) const {
-
     Difficulty nextDiff;
-
-    logger(Logging::INFO,BRIGHT_GREEN) << "version=" << static_cast<double_t>(version);
-
     if (version >= BLOCK_MAJOR_VERSION_4) {
-        logger(Logging::INFO,BRIGHT_RED) << "V4";
         nextDiff = nextDifficultyV4(version,blockIndex,timestamps,cumulativeDifficulties);
     } else if (version == BLOCK_MAJOR_VERSION_3) {
-        logger(Logging::INFO,BRIGHT_RED) << "V3";
         nextDiff = nextDifficultyV3(version,timestamps,cumulativeDifficulties);
     } else if (version == BLOCK_MAJOR_VERSION_2) {
-        logger(Logging::INFO,BRIGHT_RED) << "V2";
         nextDiff =  nextDifficultyV2(version,timestamps,cumulativeDifficulties);
     } else {
-        logger(Logging::INFO,BRIGHT_RED) << "V1";
         nextDiff = nextDifficultyV1(version,timestamps,cumulativeDifficulties);
     }
     if(nextDiff < 1) {
