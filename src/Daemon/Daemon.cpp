@@ -181,7 +181,7 @@ int main(int argc, char* argv[])
 
     bool testnet_mode = command_line::get_arg(vm, arg_testnet_on);
     if (testnet_mode) {
-      logger(INFO) << "Starting in testnet mode!";
+      logger(INFO, WHITE) << "Starting in testnet mode with values below :";
     }
 
     //create objects and link them
