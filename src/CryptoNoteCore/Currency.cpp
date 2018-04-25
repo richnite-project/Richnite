@@ -451,7 +451,7 @@ Difficulty Currency::nextDifficulty(
         ) const {
     Difficulty nextDiff;
     if (version >= BLOCK_MAJOR_VERSION_4) {
-        nextDiff = nextDifficultyV4(version,blockIndex,timestamps,cumulativeDifficulties);
+        nextDiff = nextDifficultyV4(version,timestamps,cumulativeDifficulties);
     } else if (version == BLOCK_MAJOR_VERSION_3) {
         nextDiff = nextDifficultyV3(version,timestamps,cumulativeDifficulties);
     } else if (version == BLOCK_MAJOR_VERSION_2) {
@@ -471,14 +471,15 @@ Difficulty Currency::nextDifficulty(
 // Tom Harding, Karbowanec, Masari, Bitcoin Gold, and Bitcoin Candy have contributed.
 // https://github.com/zawy12/difficulty-algorithms/issues/3
 
+// Zawy's LWMA difficulty algorithm implementation V4 (60 solvetimes limits -7T/7T)
+// (60 solvetimes - limits -7T/7T - adjust = 0.9909)
 Difficulty Currency::nextDifficultyV4(
         uint8_t &version,
-        uint32_t &blockIndex,
         std::vector<uint64_t> timestamps,
         std::vector<Difficulty> cumulativeDifficulties
         ) const {
-    size_t c_difficultyWindow = difficultyWindowByBlockVersion(version); // 61
-    int64_t c_difficultyTarget = static_cast<int64_t>(m_difficultyTarget);
+    const size_t c_difficultyWindow = difficultyWindowByBlockVersion(version); // 61
+    const int64_t c_difficultyTarget = static_cast<int64_t>(m_difficultyTarget);
     if (timestamps.size() > c_difficultyWindow) {
         timestamps.resize(c_difficultyWindow);
         cumulativeDifficulties.resize(c_difficultyWindow);
@@ -489,18 +490,17 @@ Difficulty Currency::nextDifficultyV4(
     if (length <= 1) {
         return 1;
     }
-    int64_t solveTime(0),LWMA(0),minWST(0),average(0);
+    int64_t solveTime(0),LWMA(0),minWST(0);
     uint64_t aimedTarget(0),low,high;
     Difficulty totalWork(0),nextDiff(0);
-    double_t adjust = 0.9909;
+    const double_t adjust = 0.9909;
     for (int64_t i = 1; i < length; i++) { // lenght = 61
         solveTime = static_cast<int64_t>(timestamps[i]) - static_cast<int64_t>(timestamps[i-1]);
         solveTime = std::min<int64_t>((c_difficultyTarget * 7), std::max<int64_t>(solveTime, (-7 * c_difficultyTarget)));
         LWMA += solveTime * i;
-        average+=solveTime;
     }
-    // keep weightedSolveTimes in case strange solvetimes occurred in an unforeseeable way  : min N*(N+1)/2*T/4
-    minWST = c_difficultyTarget * length*(length-1)/8;
+    // Keep LWMA sane in case something unforeseen occurs.if ( LWMA < T*N ) { LWMA = T*N; }
+    minWST = c_difficultyTarget * (length - 1);
     if(LWMA < minWST){
         LWMA = minWST;
     }
@@ -508,18 +508,15 @@ Difficulty Currency::nextDifficultyV4(
     aimedTarget = adjust * (length / 2.0) * c_difficultyTarget ;
     assert(totalWork > 0);
     low = mul128(totalWork, aimedTarget, &high);
-
     if (high != 0) {
         return 0;
     }
-
     nextDiff = low/LWMA;
-//    if (isTestnet()) {
-//        logger(Logging::INFO,BRIGHT_BLUE) << "average=" << static_cast<double_t>(static_cast<double_t>(average)/(length - 1 ));
-//        logger(Logging::INFO,BRIGHT_WHITE) << "Target=" << c_difficultyTarget << " Version=" << static_cast<int64_t>(version) << " Height=" << blockIndex << ", next Diff=" << nextDiff << ", HR (H/s)=" << static_cast<double_t>(nextDiff/c_difficultyTarget);
-//    }
     return nextDiff;
 }
+
+// Zawy's LWMA difficulty algorithm implementation V3
+// ( 59 solvetimes intead of 60 - adjust = 0.9909 - -5T/6T limits - potential exploit fixed )
 
 Difficulty Currency::nextDifficultyV3(
         uint8_t &version,
@@ -567,6 +564,8 @@ Difficulty Currency::nextDifficultyV3(
     return low/weightedSolveTimes;
 }
 
+// First Zawy's LWMA difficulty algorithm implementation at block 69500
+// ( 59 solvetimes intead of 60 - adjust = 0.9912338056 - potential exploit due to uint solvetimes)
 Difficulty Currency::nextDifficultyV2(
         uint8_t &version,
         std::vector<uint64_t> timestamps,
@@ -610,6 +609,7 @@ Difficulty Currency::nextDifficultyV2(
     return low/weightedSolveTimes;
 }
 
+// Original difficulty algorithm implementation
 Difficulty Currency::nextDifficultyV1(
         uint8_t &version,
         std::vector<uint64_t> timestamps,
