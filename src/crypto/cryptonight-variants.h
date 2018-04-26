@@ -19,7 +19,7 @@
 /* The following was adapted from the Monero Cryptonight variant change of April 2018. */
 
 #include <stdio.h>
-#ifndef WINDOWS
+#ifndef WIN32
 #include <unistd.h>
 #endif
 #pragma once
