@@ -29,7 +29,7 @@ const size_t   CRYPTONOTE_MAX_BLOCK_BLOB_SIZE                = 500000000;
 const size_t   CRYPTONOTE_MAX_TX_SIZE                        = 1000000000;
 const uint64_t CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX       = 0x16fa;
 const uint32_t CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW          = 20;
-const uint64_t CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT            = 60 * 60 * 2;
+const uint64_t CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT            = 525; // T*N/20
 
 const size_t   BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW             = 60;
 
@@ -38,14 +38,18 @@ const uint64_t MONEY_SUPPLY                                  = UINT64_C(25000000
 const size_t CRYPTONOTE_COIN_VERSION                         = 1;
 const unsigned EMISSION_SPEED_FACTOR                         = 18;
 
+// mandatory mixin V4
+const uint8_t MANDATORY_MIXIN_BLOCK_VERSION                  = 4;
+const size_t MIN_MIXIN                                       = 2;
+const size_t MAX_MIXIN                                       = 10;
+
+
 static_assert(EMISSION_SPEED_FACTOR <= 8 * sizeof(uint64_t), "Bad EMISSION_SPEED_FACTOR");
 
 const size_t   CRYPTONOTE_REWARD_BLOCKS_WINDOW               = 100;
 const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE     = 20000;
 const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V1  = 20000;
-const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V2  = 60000; // increasing to allow bigger tx
-const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V3  = CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V2; // idem
-const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_CURRENT = CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V3;
+const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_CURRENT = 60000; // increasing to allow bigger tx
 const size_t   CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE        = 600;
 const size_t   CRYPTONOTE_DISPLAY_DECIMAL_POINT              = 8;
 const uint64_t MINIMUM_FEE                                   = UINT64_C(5000);
@@ -54,17 +58,11 @@ const uint64_t DEFAULT_DUST_THRESHOLD                        = UINT64_C(5000);
 const uint64_t DIFFICULTY_TARGET                             = 175;
 const uint64_t EXPECTED_NUMBER_OF_BLOCKS_PER_DAY             = 24 * 60 * 60 / DIFFICULTY_TARGET;
 const size_t   DIFFICULTY_WINDOW                             = EXPECTED_NUMBER_OF_BLOCKS_PER_DAY;
-const size_t   DIFFICULTY_WINDOW_V1                          = DIFFICULTY_WINDOW;
 const size_t   DIFFICULTY_WINDOW_V2                          = 60;
-const size_t   DIFFICULTY_WINDOW_V3                          = DIFFICULTY_WINDOW_V2;
+const size_t   DIFFICULTY_WINDOW_V4                          = 61;
 const size_t   DIFFICULTY_CUT                                = 60;
-const size_t   DIFFICULTY_CUT_V1                             = DIFFICULTY_CUT;
-const size_t   DIFFICULTY_CUT_V2                             = DIFFICULTY_CUT;
-const size_t   DIFFICULTY_CUT_V3                             = DIFFICULTY_CUT;
 const size_t   DIFFICULTY_LAG                                = 15;
-const size_t   DIFFICULTY_LAG_V1                             = DIFFICULTY_LAG;
 const size_t   DIFFICULTY_LAG_V2                             = 0;
-const size_t   DIFFICULTY_LAG_V3                             = DIFFICULTY_LAG_V2;
 
 static_assert(2 * DIFFICULTY_CUT <= DIFFICULTY_WINDOW - 2, "Bad DIFFICULTY_WINDOW or DIFFICULTY_CUT");
 
@@ -88,7 +86,7 @@ const uint32_t IRIDIUM_REWARD_ADJUSTMENT_BLOCK               = 8560;
 
 const uint32_t UPGRADE_HEIGHT_V2                             = 69500;
 const uint32_t UPGRADE_HEIGHT_V3                             = 95250;
-const uint32_t UPGRADE_HEIGHT_V4                             = -1;
+const uint32_t UPGRADE_HEIGHT_V4                             = 115200;
 const unsigned UPGRADE_VOTING_THRESHOLD                      = 90;               // percent
 const uint32_t UPGRADE_VOTING_WINDOW                         = EXPECTED_NUMBER_OF_BLOCKS_PER_DAY;  // blocks
 const uint32_t UPGRADE_WINDOW                                = EXPECTED_NUMBER_OF_BLOCKS_PER_DAY;  // blocks
@@ -103,8 +101,8 @@ const char     MINER_CONFIG_FILE_NAME[]                      = "miner_conf.json"
 
 // testnet setup
 const uint32_t TESTNET_UPGRADE_HEIGHT_V2                             = 2;
-const uint32_t TESTNET_UPGRADE_HEIGHT_V3                             = 10;
-const uint32_t TESTNET_UPGRADE_HEIGHT_V4                             = -1;
+const uint32_t TESTNET_UPGRADE_HEIGHT_V3                             = 5;
+const uint32_t TESTNET_UPGRADE_HEIGHT_V4                             = 10;
 const uint64_t TESTNET_DIFFICULTY_TARGET                             = 15; // target in testnet mode
 
 } // parameters
@@ -165,12 +163,9 @@ struct CheckpointData {
 };
 
 const std::initializer_list<CheckpointData> CHECKPOINTS = {
-    {1472,"c04eeed2a0472ed73a5a42e14834cbb82ff35dae555df343d1d5abcac0dc0c19"},
-    {1473,"1571fe8ab50ec2d7c3a523f939524086408c9e9f1fadad820d8af50bbf4ec1dc"},
-    {1474,"72d9313ed27985756ec2be9d524aee16026c2f8c5b48c2ea9886a88334019b8d"},
     {69500,"1e6f58fac635e3e0a0ca3845f6a07abaf4080c36dd91bfab315f6cdb657cc775"},
-    {69501,"f7533fed7e05112098b9d4e0e6c92c6e2bb9145d0b4ca897a1e241e57a8f6206"},
-    {92300,"ce67a10acca26ce15cef9a441dbfeff06667e41eeacdc6dcc8661b2c0bc45783"}
+    {95250,"a5d8f703b1e4afa73b9f3050b9972c2b23730fcb5c916b521bc7d6ce2ad4c959"},
+    {112975,"4c1d4f631458222335e20f6792624778e3add84bd22814830a6aa742850fc554"}
 };
 
 } // CryptoNote

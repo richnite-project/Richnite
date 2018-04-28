@@ -30,6 +30,8 @@ enum WalletErrorCodes {
   WRONG_STATE,
   WRONG_PASSWORD,
   INTERNAL_WALLET_ERROR,
+  MIXIN_COUNT_TOO_SMALL,
+  MIXIN_COUNT_TOO_HIGH,
   MIXIN_COUNT_TOO_BIG,
   BAD_ADDRESS,
   TRANSACTION_SIZE_TOO_BIG,
@@ -76,6 +78,8 @@ public:
     case WRONG_PASSWORD:                return "The password is wrong";
     case ALREADY_INITIALIZED:           return "The object is already initialized";
     case INTERNAL_WALLET_ERROR:         return "Internal error occurred";
+    case MIXIN_COUNT_TOO_SMALL:         return "MixIn count is below the required minimum";
+    case MIXIN_COUNT_TOO_HIGH:          return "MixIn count is over the maximum allowed";
     case MIXIN_COUNT_TOO_BIG:           return "MixIn count is too big";
     case BAD_ADDRESS:                   return "Bad address";
     case TRANSACTION_SIZE_TOO_BIG:      return "Transaction size is too big";

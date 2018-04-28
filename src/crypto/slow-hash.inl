@@ -21,16 +21,19 @@ cn_slow_hash_aesni
 #else
 cn_slow_hash_noaesni
 #endif
-(void *restrict context, const void *restrict data, size_t length, void *restrict hash)
+(void *restrict context, const void *restrict data, size_t length, void *restrict hash, int lite, int variant)
 {
 #define ctx ((struct cn_ctx *) context)
   ALIGNED_DECL(uint8_t ExpandedKey[256], 16);
   size_t i;
   __m128i *longoutput, *expkey, *xmminput, b_x;
   ALIGNED_DECL(uint64_t a[2], 16);
+  size_t memory = lite ? LITE_MEMORY : MEMORY;
+  size_t iterations = lite ? LITE_ITER : ITER;
+  size_t mask = lite ? LITE_MASK : MASK;
   hash_process(&ctx->state.hs, (const uint8_t*) data, length);
-
   memcpy(ctx->text, ctx->state.init, INIT_SIZE_BYTE);
+  VARIANT1_INIT64();
 #if defined(AESNI)
   memcpy(ExpandedKey, ctx->state.hs.b, AES_KEY_SIZE);
   ExpandAESKey256(ExpandedKey);
@@ -47,7 +50,7 @@ cn_slow_hash_noaesni
   //for (i = 0; likely(i < MEMORY); i += INIT_SIZE_BYTE)
   //    aesni_parallel_noxor(&ctx->long_state[i], ctx->text, ExpandedKey);
 
-  for (i = 0; likely(i < MEMORY); i += INIT_SIZE_BYTE)
+  for (i = 0; likely(i < memory); i += INIT_SIZE_BYTE)
   {
 #if defined(AESNI)
     for(size_t j = 0; j < 10; j++)
@@ -90,10 +93,9 @@ cn_slow_hash_noaesni
   b_x = _mm_load_si128((__m128i *)ctx->b);
   a[0] = ctx->a[0];
   a[1] = ctx->a[1];
-
-  for(i = 0; likely(i < 0x80000); i++)
+  for(i = 0; likely(i < iterations); i++)
   {
-    __m128i c_x = _mm_load_si128((__m128i *)&ctx->long_state[a[0] & 0x1FFFF0]);
+    __m128i c_x = _mm_load_si128((__m128i *)&ctx->long_state[a[0] & mask]);
     __m128i a_x = _mm_load_si128((__m128i *)a);
     ALIGNED_DECL(uint64_t c[2], 16);
     ALIGNED_DECL(uint64_t b[2], 16);
@@ -106,12 +108,13 @@ cn_slow_hash_noaesni
 #endif
 
     _mm_store_si128((__m128i *)c, c_x);
-    //__builtin_prefetch(&ctx->long_state[c[0] & 0x1FFFF0], 0, 1);
+    //__builtin_prefetch(&ctx->long_state[c[0] & mask], 0, 1);
 
     b_x = _mm_xor_si128(b_x, c_x);
-    _mm_store_si128((__m128i *)&ctx->long_state[a[0] & 0x1FFFF0], b_x);
+    _mm_store_si128((__m128i *)&ctx->long_state[a[0] & mask], b_x);
+    VARIANT1_1(&ctx->long_state[a[0] & mask])
 
-    nextblock = (uint64_t *)&ctx->long_state[c[0] & 0x1FFFF0];
+    nextblock = (uint64_t *)&ctx->long_state[c[0] & mask];
     b[0] = nextblock[0];
     b[1] = nextblock[1];
 
@@ -133,14 +136,15 @@ cn_slow_hash_noaesni
       a[0] += hi;
       a[1] += lo;
     }
-    dst = (uint64_t *) &ctx->long_state[c[0] & 0x1FFFF0];
+    dst = (uint64_t *) &ctx->long_state[c[0] & mask];
     dst[0] = a[0];
     dst[1] = a[1];
 
     a[0] ^= b[0];
     a[1] ^= b[1];
+    VARIANT1_2(dst + 1);
     b_x = c_x;
-    //__builtin_prefetch(&ctx->long_state[a[0] & 0x1FFFF0], 0, 3);
+    //__builtin_prefetch(&ctx->long_state[a[0] & mask], 0, 3);
   }
 
   memcpy(ctx->text, ctx->state.init, INIT_SIZE_BYTE);
@@ -155,7 +159,8 @@ cn_slow_hash_noaesni
   //for (i = 0; likely(i < MEMORY); i += INIT_SIZE_BYTE)
   //    aesni_parallel_xor(&ctx->text, ExpandedKey, &ctx->long_state[i]);
 
-  for (i = 0; likely(i < MEMORY); i += INIT_SIZE_BYTE)
+
+  for (i = 0; likely(i < memory); i += INIT_SIZE_BYTE)
   {
     xmminput[0] = _mm_xor_si128(longoutput[(i >> 4)], xmminput[0]);
     xmminput[1] = _mm_xor_si128(longoutput[(i >> 4) + 1], xmminput[1]);
@@ -194,7 +199,6 @@ cn_slow_hash_noaesni
 #if !defined(AESNI)
   oaes_free((OAES_CTX **) &ctx->aes_ctx);
 #endif
-
   memcpy(ctx->state.init, ctx->text, INIT_SIZE_BYTE);
   hash_permutation(&ctx->state.hs);
   extra_hashes[ctx->state.hs.b[0] & 3](&ctx->state, 200, hash);
