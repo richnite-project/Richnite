@@ -482,11 +482,11 @@ Difficulty Currency::nextDifficultyV4(
     const double_t adjust = 0.9909;
     for (int64_t i = 1; i < length; i++) { // lenght = 61
         solveTime = static_cast<int64_t>(timestamps[i]) - static_cast<int64_t>(timestamps[i-1]);
-        solveTime = std::min<int64_t>((c_difficultyTarget * 7), std::max<int64_t>(solveTime, (-7 * c_difficultyTarget)));
+        solveTime = std::max<int64_t>(- blockFutureTimeLimit(), solveTime);
         LWMA += solveTime * i;
     }
-    // Keep LWMA sane in case something unforeseen occurs.if ( LWMA < T*N ) { LWMA = T*N; }
-    minWST = c_difficultyTarget * (length - 1);
+    // Keep LWMA sane in case something unforeseen occurs.if ( LWMA < T*N*(N+1)/8 ) { LWMA = T*N*(N+1)/8; N=lenght-1}
+    minWST = c_difficultyTarget * length*(length-1)/8;
     if(LWMA < minWST){
         LWMA = minWST;
     }
@@ -724,6 +724,7 @@ Currency::Currency(Currency&& currency) :
     m_publicAddressBase58Prefix(currency.m_publicAddressBase58Prefix),
     m_minedMoneyUnlockWindow(currency.m_minedMoneyUnlockWindow),
     m_timestampCheckWindow(currency.m_timestampCheckWindow),
+    m_timestampCheckWindowV4(currency.m_timestampCheckWindowV4),
     m_blockFutureTimeLimit(currency.m_blockFutureTimeLimit),
     m_moneySupply(currency.m_moneySupply),
     m_emissionSpeedFactor(currency.m_emissionSpeedFactor),
@@ -778,6 +779,7 @@ CurrencyBuilder::CurrencyBuilder(Logging::ILogger& log) : m_currency(log) {
     minedMoneyUnlockWindow(parameters::CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW);
 
     timestampCheckWindow(parameters::BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW);
+    timestampCheckWindowV4(parameters::BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW_V4);
     blockFutureTimeLimit(parameters::CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT);
 
     moneySupply(parameters::MONEY_SUPPLY);
