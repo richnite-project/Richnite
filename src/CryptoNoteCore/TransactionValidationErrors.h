@@ -74,6 +74,7 @@ public:
       case TransactionValidationError::EMPTY_INPUTS: return "Transaction has no inputs";
       case TransactionValidationError::INPUT_UNKNOWN_TYPE: return "Transaction has input with unknown type";
       case TransactionValidationError::INPUT_EMPTY_OUTPUT_USAGE: return "Transaction's input uses empty output";
+      case TransactionValidationError::INPUT_INVALID_DOMAIN_KEYIMAGES: return "Transaction uses key image not in the valid domain";
       case TransactionValidationError::INPUT_IDENTICAL_KEYIMAGES: return "Transaction has identical key images";
       case TransactionValidationError::MIXIN_COUNT_TOO_SMALL: return "MixIn count is below the required minimum";
       case TransactionValidationError::MIXIN_COUNT_TOO_HIGH: return "MixIn count is over the maximimum allowed";
