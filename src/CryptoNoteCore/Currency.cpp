@@ -608,7 +608,7 @@ Difficulty Currency::nextDifficultyV1(
         timestamps.resize(c_difficultyWindow);
         cumulativeDifficulties.resize(c_difficultyWindow);
     }
-    uint64_t aimedTarget(0),low,high;
+    uint64_t low,high;
     size_t length = timestamps.size();
     assert(length == cumulativeDifficulties.size());
     assert(length <= c_difficultyWindow);

@@ -163,8 +163,6 @@ private:
   unsigned int m_emissionSpeedFactor;
 
   size_t m_rewardBlocksWindow;
-  size_t m_zawyDifficultyV2;
-  uint8_t m_zawyDifficultyBlockVersion;
   size_t m_blockGrantedFullRewardZone;
   size_t m_minerTxBlobReservedSize;
 
