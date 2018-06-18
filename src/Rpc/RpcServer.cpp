@@ -436,7 +436,7 @@ bool RpcServer::on_get_info(const COMMAND_RPC_GET_INFO::request& req, COMMAND_RP
   res.incoming_connections_count = total_conn - res.outgoing_connections_count;
   res.white_peerlist_size = m_p2p.getPeerlistManager().get_white_peers_count();
   res.grey_peerlist_size = m_p2p.getPeerlistManager().get_gray_peers_count();
-  res.last_known_block_index = std::max(static_cast<uint32_t>(1), m_protocol.getObservedHeight()) - 1;
+  res.last_known_block_index = std::max(static_cast<uint32_t>(1), m_protocol.getObservedHeight());
   res.status = CORE_RPC_STATUS_OK;
   res.version = PROJECT_VERSION_LONG;
   return true;
@@ -617,6 +617,11 @@ bool RpcServer::f_on_block_json(const F_COMMAND_RPC_GET_BLOCK_DETAILS::request& 
   uint64_t maxReward = 0;
   uint64_t currentReward = 0;
   int64_t emissionChange = 0;
+
+  if (maxReward) {}
+  if (currentReward) {}
+  if (emissionChange) {}
+
   size_t blockGrantedFullRewardZone = m_core.getCurrency().blockGrantedFullRewardZoneByBlockVersion(block_header.major_version);
   res.block.effectiveSizeMedian = std::max(res.block.sizeMedian, blockGrantedFullRewardZone);
 
