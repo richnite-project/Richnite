@@ -104,7 +104,7 @@ const char     MINER_CONFIG_FILE_NAME[]                      = "miner_conf.json"
 const uint32_t TESTNET_UPGRADE_HEIGHT_V2                             = 2;
 const uint32_t TESTNET_UPGRADE_HEIGHT_V3                             = 5;
 const uint32_t TESTNET_UPGRADE_HEIGHT_V4                             = 10;
-const uint64_t TESTNET_DIFFICULTY_TARGET                             = 15; // target in testnet mode
+const uint64_t TESTNET_DIFFICULTY_TARGET                             = 175; // target in testnet mode
 
 } // parameters
 
@@ -163,10 +163,11 @@ struct CheckpointData {
     const char* blockId;
 };
 
+// checkpoints at Hardforks
 const std::initializer_list<CheckpointData> CHECKPOINTS = {
     {69500,"1e6f58fac635e3e0a0ca3845f6a07abaf4080c36dd91bfab315f6cdb657cc775"},
     {95250,"a5d8f703b1e4afa73b9f3050b9972c2b23730fcb5c916b521bc7d6ce2ad4c959"},
-    {112975,"4c1d4f631458222335e20f6792624778e3add84bd22814830a6aa742850fc554"}
+    {115200,"896c2d44deca8b1349e55f88ee8795d51bfc7b0feb4a59562fda61ae6e1f9fa5"}
 };
 
 } // CryptoNote
