@@ -33,6 +33,7 @@ endif()
 if(MSVC)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/Windows)
 elseif(APPLE)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET 10.10)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/OSX)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/Posix)
 else()
@@ -99,6 +100,10 @@ else()
         set(DEBUG_FLAGS "-g3 -Og -gdwarf-4 -fvar-tracking -fvar-tracking-assignments -fno-inline -fno-omit-frame-pointer")
     else()
         set(DEBUG_FLAGS "-g3 -O0 -fno-omit-frame-pointer")
+    endif()
+
+    if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
+        set(DEBUG_FLAGS "${DEBUG_FLAGS} -Wno-delete-non-virtual-dtor")
     endif()
 
     # release flags
