@@ -101,6 +101,10 @@ else()
         set(DEBUG_FLAGS "-g3 -O0 -fno-omit-frame-pointer")
     endif()
 
+    if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
+        set(DEBUG_FLAGS "${DEBUG_FLAGS} -Wno-delete-non-virtual-dtor")
+    endif()
+
     # release flags
     set(RELEASE_FLAGS "-Ofast -DNDEBUG -Wno-unused-variable -Wno-uninitialized -Wno-unused-function -Wno-sign-compare")
     if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND NOT (CMAKE_C_COMPILER_VERSION VERSION_LESS 4.8))
