@@ -14,6 +14,10 @@
 //
 // You should have received a copy of the GNU Lesser General Public License
 // along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// Copyright (c) 2018, The BBSCoin Developers
+// Copyright (c) 2018, The Karbo Developers
+// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018, The Iridium Developer
 
 #include "TransfersSynchronizer.h"
 #include "TransfersConsumer.h"
@@ -87,6 +91,13 @@ void TransfersSyncronizer::getSubscriptions(std::vector<AccountPublicAddress>& s
 ITransfersSubscription* TransfersSyncronizer::getSubscription(const AccountPublicAddress& acc) {
   auto it = m_consumers.find(acc.viewPublicKey);
   return (it == m_consumers.end()) ? nullptr : it->second->getSubscription(acc);
+}
+
+void TransfersSyncronizer::addPublicKeysSeen(const AccountPublicAddress& acc, const Crypto::Hash& transactionHash, const Crypto::PublicKey& outputKey) {
+    auto it = m_consumers.find(acc.viewPublicKey);
+    if (it != m_consumers.end()) {
+        it->second->addPublicKeysSeen(transactionHash, outputKey);
+    }
 }
 
 std::vector<Crypto::Hash> TransfersSyncronizer::getViewKeyKnownBlocks(const Crypto::PublicKey& publicViewKey) {
