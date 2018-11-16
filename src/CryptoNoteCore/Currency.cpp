@@ -132,7 +132,7 @@ bool Currency::generateGenesisBlock() {
 size_t Currency::difficultyWindowByBlockVersion(uint8_t blockMajorVersion) const {
     if (blockMajorVersion >= BLOCK_MAJOR_VERSION_5) {
         return CryptoNote::parameters::DIFFICULTY_WINDOW_V5;
-    } else if (blockMajorVersion >= BLOCK_MAJOR_VERSION_4) {
+    } else if (blockMajorVersion == BLOCK_MAJOR_VERSION_4) {
         return CryptoNote::parameters::DIFFICULTY_WINDOW_V4;
     } else if (blockMajorVersion == BLOCK_MAJOR_VERSION_2 || blockMajorVersion == BLOCK_MAJOR_VERSION_3) {
         return CryptoNote::parameters::DIFFICULTY_WINDOW_V2;
