@@ -69,7 +69,7 @@ public:
   size_t difficultyLag() const { return m_difficultyLag; }
   size_t difficultyLagByBlockVersion(uint8_t blockMajorVersion) const;
   size_t difficultyCut() const { return m_difficultyCut; }
-  size_t difficultyCutByBlockVersion(uint8_t blockMajorVersion) const;
+//  size_t difficultyCutByBlockVersion() const;
   size_t difficultyBlocksCount() const { return m_difficultyWindow + m_difficultyLag; }
   size_t difficultyBlocksCountByBlockVersion(uint8_t blockMajorVersion) const;
 
@@ -126,11 +126,11 @@ public:
   std::string formatAmount(int64_t amount) const;
   bool parseAmount(const std::string& str, uint64_t& amount) const;
 
-  Difficulty nextDifficulty(uint8_t version, uint32_t blockIndex, std::vector<uint64_t> timestamps, std::vector<Difficulty> cumulativeDifficulties) const;
-  Difficulty nextDifficultyV1(uint8_t &version, std::vector<uint64_t> timestamps, std::vector<Difficulty> cumulativeDifficulties) const;
-  Difficulty nextDifficultyV2(uint8_t &version, std::vector<uint64_t> timestamps, std::vector<Difficulty> cumulativeDifficulties) const;
-  Difficulty nextDifficultyV3(uint8_t &version, std::vector<uint64_t> timestamps, std::vector<Difficulty> cumulativeDifficulties) const;
-  Difficulty nextDifficultyV4(uint8_t &version, std::vector<uint64_t> timestamps, std::vector<Difficulty> cumulativeDifficulties) const;
+  Difficulty nextDifficulty(uint8_t &version, uint32_t &blockIndex, std::vector<uint64_t> timestamps, std::vector<Difficulty> cumulativeDifficulties) const;
+  Difficulty nextDifficultyV1(uint8_t &version, std::vector<uint64_t>& timestamps, std::vector<Difficulty>& cumulativeDifficulties) const;
+  Difficulty nextDifficultyV2(uint8_t &version, std::vector<uint64_t>& timestamps, std::vector<Difficulty>& cumulativeDifficulties) const;
+  Difficulty nextDifficultyV3(uint8_t &version, std::vector<uint64_t>& timestamps, std::vector<Difficulty>& cumulativeDifficulties) const;
+  Difficulty nextDifficultyV4(uint8_t &version, std::vector<uint64_t>& timestamps, std::vector<Difficulty>& cumulativeDifficulties) const;
 
   bool checkProofOfWorkV1(Crypto::cn_context& context, const CachedBlock& block, Difficulty currentDifficulty) const;
   bool checkProofOfWorkV2(Crypto::cn_context& context, const CachedBlock& block, Difficulty currentDifficulty) const;
@@ -201,11 +201,12 @@ private:
   uint32_t m_upgradeHeightV2;
   uint32_t m_upgradeHeightV3;
   uint32_t m_upgradeHeightV4;
+  uint32_t m_upgradeHeightV5;
 
   uint32_t m_testnetUpgradeHeightV2;
   uint32_t m_testnetUpgradeHeightV3;
   uint32_t m_testnetUpgradeHeightV4;
-
+  uint32_t m_testnetUpgradeHeightV5;
 
   unsigned int m_upgradeVotingThreshold;
   uint32_t m_upgradeVotingWindow;
@@ -291,10 +292,12 @@ public:
   CurrencyBuilder& upgradeHeightV2(uint32_t val) { m_currency.m_upgradeHeightV2 = val; return *this; }
   CurrencyBuilder& upgradeHeightV3(uint32_t val) { m_currency.m_upgradeHeightV3 = val; return *this; }
   CurrencyBuilder& upgradeHeightV4(uint32_t val) { m_currency.m_upgradeHeightV4 = val; return *this; }
+  CurrencyBuilder& upgradeHeightV5(uint32_t val) { m_currency.m_upgradeHeightV5 = val; return *this; }
 
   CurrencyBuilder& testnetUpgradeHeightV2(uint32_t val) { m_currency.m_testnetUpgradeHeightV2 = val; return *this; }
   CurrencyBuilder& testnetUpgradeHeightV3(uint32_t val) { m_currency.m_testnetUpgradeHeightV3 = val; return *this; }
   CurrencyBuilder& testnetUpgradeHeightV4(uint32_t val) { m_currency.m_testnetUpgradeHeightV4 = val; return *this; }
+  CurrencyBuilder& testnetUpgradeHeightV5(uint32_t val) { m_currency.m_testnetUpgradeHeightV5 = val; return *this; }
 
   CurrencyBuilder& upgradeVotingThreshold(unsigned int val);
   CurrencyBuilder& upgradeVotingWindow(uint32_t val) { m_currency.m_upgradeVotingWindow = val; return *this; }

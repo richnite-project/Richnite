@@ -61,6 +61,7 @@ const uint64_t EXPECTED_NUMBER_OF_BLOCKS_PER_DAY             = 24 * 60 * 60 / DI
 const size_t   DIFFICULTY_WINDOW                             = EXPECTED_NUMBER_OF_BLOCKS_PER_DAY;
 const size_t   DIFFICULTY_WINDOW_V2                          = 60;
 const size_t   DIFFICULTY_WINDOW_V4                          = 61;
+const size_t   DIFFICULTY_WINDOW_V5                          = 61;
 const size_t   DIFFICULTY_CUT                                = 60;
 const size_t   DIFFICULTY_LAG                                = 15;
 const size_t   DIFFICULTY_LAG_V2                             = 0;
@@ -88,6 +89,7 @@ const uint32_t IRIDIUM_REWARD_ADJUSTMENT_BLOCK               = 8560;
 const uint32_t UPGRADE_HEIGHT_V2                             = 69500;
 const uint32_t UPGRADE_HEIGHT_V3                             = 95250;
 const uint32_t UPGRADE_HEIGHT_V4                             = 115200;
+const uint32_t UPGRADE_HEIGHT_V5                             = 500000001;
 const unsigned UPGRADE_VOTING_THRESHOLD                      = 90;               // percent
 const uint32_t UPGRADE_VOTING_WINDOW                         = EXPECTED_NUMBER_OF_BLOCKS_PER_DAY;  // blocks
 const uint32_t UPGRADE_WINDOW                                = EXPECTED_NUMBER_OF_BLOCKS_PER_DAY;  // blocks
@@ -103,8 +105,9 @@ const char     MINER_CONFIG_FILE_NAME[]                      = "miner_conf.json"
 // testnet setup
 const uint32_t TESTNET_UPGRADE_HEIGHT_V2                             = 2;
 const uint32_t TESTNET_UPGRADE_HEIGHT_V3                             = 5;
-const uint32_t TESTNET_UPGRADE_HEIGHT_V4                             = 10;
-const uint64_t TESTNET_DIFFICULTY_TARGET                             = 175; // target in testnet mode
+const uint32_t TESTNET_UPGRADE_HEIGHT_V4                             = 8;
+const uint32_t TESTNET_UPGRADE_HEIGHT_V5                             = 10;
+const uint64_t TESTNET_DIFFICULTY_TARGET                             = 60; // target in testnet mode
 
 } // parameters
 
@@ -117,6 +120,7 @@ const uint8_t  BLOCK_MAJOR_VERSION_1                         =  1;
 const uint8_t  BLOCK_MAJOR_VERSION_2                         =  2;
 const uint8_t  BLOCK_MAJOR_VERSION_3                         =  3;
 const uint8_t  BLOCK_MAJOR_VERSION_4                         =  4;
+const uint8_t  BLOCK_MAJOR_VERSION_5                         =  5;
 const uint8_t  BLOCK_MINOR_VERSION_0                         =  0;
 const uint8_t  BLOCK_MINOR_VERSION_1                         =  1;
 
