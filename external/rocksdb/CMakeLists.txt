@@ -49,6 +49,8 @@ option(WITH_SNAPPY "build with SNAPPY" OFF)
 option(WITH_LZ4 "build with lz4" OFF)
 option(WITH_ZLIB "build with zlib" OFF)
 option(WITH_ZSTD "build with zstd" OFF)
+option(USE_RTTI "build rtti" ON)
+
 if(MSVC)
   # Defaults currently different for GFLAGS.
   #  We will address find_package work a little later
@@ -145,7 +147,7 @@ set(ROCKSDB_VERSION_PATCH ${CMAKE_MATCH_1})
 set(ROCKSDB_VERSION ${ROCKSDB_VERSION_MAJOR}.${ROCKSDB_VERSION_MINOR}.${ROCKSDB_VERSION_PATCH})
 
 
-option(WITH_MD_LIBRARY "build with MD" ON)
+option(WITH_MD_LIBRARY "build with MD" OFF)
 if(WIN32 AND MSVC)
   if(WITH_MD_LIBRARY)
     set(RUNTIME_LIBRARY "MD")
@@ -164,7 +166,7 @@ if(MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /FC /d2Zi+ /W4 /wd4127 /wd4800 /wd4996 /wd4351 /wd4100 /wd4204 /wd4324")
 else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wextra -Wall")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-undef -Wsign-compare -Wshadow -Wno-unused-parameter -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor -Wno-missing-field-initializers -Wno-strict-aliasing")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsign-compare -Wshadow -Wno-unused-parameter -Wno-unused-variable -Woverloaded-virtual -Wnon-virtual-dtor -Wno-missing-field-initializers -Wno-strict-aliasing")
   if(MINGW)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format")
   endif()
@@ -191,7 +193,7 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "ppc64le")
   endif(HAS_ALTIVEC)
 endif(CMAKE_SYSTEM_PROCESSOR MATCHES "ppc64le")
 
-option(PORTABLE "build a portable binary" OFF)
+option(PORTABLE "build a portable binary" ON)
 option(FORCE_SSE42 "force building with SSE4.2, even when PORTABLE=ON" OFF)
 if(PORTABLE)
   # MSVC does not need a separate compiler flag to enable SSE4.2; if nmmintrin.h
@@ -336,7 +338,7 @@ endif()
 
 # Used to run CI build and tests so we can run faster
 option(OPTDBG "Build optimized debug build with MSVC" OFF)
-option(WITH_RUNTIME_DEBUG "build with debug version of runtime library" ON)
+option(WITH_RUNTIME_DEBUG "build with debug version of runtime library" OFF)
 if(MSVC)
   if(OPTDBG)
     message(STATUS "Debug optimization is enabled")
@@ -399,7 +401,7 @@ if(NOT WIN32)
   add_definitions(-DROCKSDB_PLATFORM_POSIX -DROCKSDB_LIB_IO_POSIX)
 endif()
 
-option(WITH_FALLOCATE "build with fallocate" ON)
+option(WITH_FALLOCATE "build with fallocate" OFF)
 if(WITH_FALLOCATE)
   CHECK_CXX_SOURCE_COMPILES("
 #include <fcntl.h>
@@ -837,7 +839,7 @@ if(NOT WIN32 OR ROCKSDB_INSTALL_ON_WINDOWS)
   )
 endif()
 
-option(WITH_TESTS "build with tests" ON)
+option(WITH_TESTS "build with tests" OFF)
 if(WITH_TESTS)
   set(TESTS
         cache/cache_test.cc
@@ -1064,7 +1066,7 @@ if(WITH_TESTS)
   endforeach(sourcefile ${C_TEST_EXES})
 endif()
 
-option(WITH_TOOLS "build with tools" ON)
+option(WITH_TOOLS "build with tools" OFF)
 if(WITH_TOOLS)
   add_subdirectory(tools)
 endif()
