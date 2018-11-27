@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 2.8.6)
 
-#Set build version
+#Set build version, default to release
+set(CMAKE_BUILD_TYPE Release CACHE STRING "Build Debug, Release")
 set(VERSION_MAJOR "4")
 set(VERSION_MINOR "0.2 ${CMAKE_BUILD_TYPE}")
-
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE TYPE INTERNAL)
 set(CMAKE_CXX_STANDARD 11)
@@ -58,7 +58,7 @@ else()
         # Since glibc 2.20 _BSD_SOURCE is deprecated, this macro is recomended instead
         add_definitions("-D_DEFAULT_SOURCE -D_GNU_SOURCE")
     endif()
-    set(ARCH native CACHE STRING "CPU to build for: -march value or default")
+    set(ARCH default CACHE STRING "CPU to build for: -march value or default")
     if("${ARCH}" STREQUAL "default")
         set(ARCH_FLAG "")
     else()
