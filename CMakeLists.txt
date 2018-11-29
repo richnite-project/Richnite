@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 2.8.6)
 
-#Set build version
+#Set build version, default to release
+set(CMAKE_BUILD_TYPE Release CACHE STRING "Build Debug, Release")
 set(VERSION_MAJOR "4")
 set(VERSION_MINOR "0.2 ${CMAKE_BUILD_TYPE}")
-
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE TYPE INTERNAL)
-set (CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_SKIP_PACKAGE_ALL_DEPENDENCY ON)
 set(CMAKE_SUPPRESS_REGENERATION ON)
 set(STATIC ON CACHE BOOL "Link libraries statically")
@@ -58,13 +58,13 @@ else()
         # Since glibc 2.20 _BSD_SOURCE is deprecated, this macro is recomended instead
         add_definitions("-D_DEFAULT_SOURCE -D_GNU_SOURCE")
     endif()
-    set(ARCH native CACHE STRING "CPU to build for: -march value or default")
+    set(ARCH default CACHE STRING "CPU to build for: -march value or default")
     if("${ARCH}" STREQUAL "default")
         set(ARCH_FLAG "")
     else()
         set(ARCH_FLAG "-march=${ARCH}")
     endif()
-    set(WARNINGS "-Wall -Wextra -Wpointer-arith -Wundef -Wvla -Wwrite-strings -Werror -Wno-error=extra -Wno-error=unused-function -Wno-error=deprecated-declarations -Wno-error=sign-compare -Wno-error=strict-aliasing -Wno-error=type-limits -Wno-unused-parameter -Wno-error=unused-variable -Wno-error=undef -Wno-error=uninitialized -Wno-error=unused-result")
+    set(WARNINGS "-Wall -Wextra -Wpointer-arith -Wvla -Wwrite-strings -Werror -Wno-error=extra -Wno-error=unused-function -Wno-error=deprecated-declarations -Wno-error=sign-compare -Wno-error=strict-aliasing -Wno-error=type-limits -Wno-unused-parameter -Wno-error=unused-variable -Wno-error=uninitialized -Wno-error=unused-result")
     if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
         set(WARNINGS "${WARNINGS} -Wno-error=mismatched-tags -Wno-error=null-conversion -Wno-overloaded-shift-op-parentheses -Wno-error=shift-count-overflow -Wno-error=tautological-constant-out-of-range-compare -Wno-error=unused-private-field -Wno-error=unneeded-internal-declaration -Wno-error=unused-function -Wno-error=missing-braces -Wno-unused-lambda-capture -Wno-exceptions -Wno-unknown-pragmas")
     else()
