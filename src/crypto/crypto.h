@@ -1,19 +1,6 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
-//
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2016-2018, The Karbowanec developers
 
 #pragma once
 
@@ -52,6 +39,10 @@ struct EllipticCurveScalar {
 
     static void generate_keys(PublicKey &, SecretKey &);
     friend void generate_keys(PublicKey &, SecretKey &);
+    static void generate_deterministic_keys(PublicKey &pub, SecretKey &sec, SecretKey& second);
+    friend void generate_deterministic_keys(PublicKey &pub, SecretKey &sec, SecretKey& second);
+    static SecretKey generate_m_keys(PublicKey &pub, SecretKey &sec, const SecretKey& recovery_key = SecretKey(), bool recover = false);
+    friend SecretKey generate_m_keys(PublicKey &pub, SecretKey &sec, const SecretKey& recovery_key, bool recover);
     static bool check_key(const PublicKey &);
     friend bool check_key(const PublicKey &);
     static bool secret_key_to_public_key(const SecretKey &, PublicKey &);
@@ -141,6 +132,14 @@ struct EllipticCurveScalar {
     crypto_ops::generate_keys(pub, sec);
   }
 
+  inline void generate_deterministic_keys(PublicKey &pub, SecretKey &sec, SecretKey& second) {
+    crypto_ops::generate_deterministic_keys(pub, sec, second);
+  }
+
+  inline SecretKey generate_m_keys(PublicKey &pub, SecretKey &sec, const SecretKey& recovery_key = SecretKey(), bool recover = false) {
+    return crypto_ops::generate_m_keys(pub, sec, recovery_key, recover);
+  }
+
   /* Check a public key. Returns true if it is valid, false otherwise.
    */
   inline bool check_key(const PublicKey &key) {
@@ -178,7 +177,7 @@ struct EllipticCurveScalar {
     const PublicKey &derived_key, PublicKey &base, EllipticCurveScalar &hashed_derivation) {
     return crypto_ops::underive_public_key_and_get_scalar(derivation, output_index, derived_key, base, hashed_derivation);
   }
-  
+
   inline void derive_secret_key(const KeyDerivation &derivation, std::size_t output_index,
     const SecretKey &base, const uint8_t* prefix, size_t prefixLength, SecretKey &derived_key) {
     crypto_ops::derive_secret_key(derivation, output_index, base, prefix, prefixLength, derived_key);

@@ -4,7 +4,7 @@
  *
  *  This work is based on the implementation of
  *          Soeren S. Thomsen and Krystian Matusiewicz
- *          
+ *
  *
  */
 
@@ -20,9 +20,9 @@ const uint8_t indices_cyclic[15] = {0,1,2,3,4,5,6,7,0,1,2,3,4,5,6};
 
 
 #define ROTATE_COLUMN_DOWN(v1, v2, amount_bytes, temp_var) {temp_var = (v1<<(8*amount_bytes))|(v2>>(8*(4-amount_bytes))); \
-															v2 = (v2<<(8*amount_bytes))|(v1>>(8*(4-amount_bytes))); \
-															v1 = temp_var;}
-  
+                                                            v2 = (v2<<(8*amount_bytes))|(v1>>(8*(4-amount_bytes))); \
+                                                            v1 = temp_var;}
+
 
 #define COLUMN(x,y,i,c0,c1,c2,c3,c4,c5,c6,c7,tv1,tv2,tu,tl,t)				\
    tu = T[2*(uint32_t)x[4*c0+0]];			    \
@@ -160,12 +160,12 @@ static void F512(uint32_t *h, const uint32_t *m) {
 
 
 /* digest up to msglen bytes of input (full blocks only) */
-static void Transform(hashState *ctx, 
-	       const uint8_t *input, 
-	       int msglen) {
+static void Transform(hashState *ctx,
+           const uint8_t *input,
+           int msglen) {
 
   /* digest message, one block at a time */
-  for (; msglen >= SIZE512; 
+  for (; msglen >= SIZE512;
        msglen -= SIZE512, input += SIZE512) {
     F512(ctx->chaining,(uint32_t*)input);
 
@@ -184,22 +184,22 @@ static void OutputTransformation(hashState *ctx) {
 
 
 
-	for (j = 0; j < 2*COLS512; j++) {
-	  temp[j] = ctx->chaining[j];
-	}
-	RND512P((uint8_t*)temp, y, 0x00000000);
-	RND512P((uint8_t*)y, z, 0x00000001);
-	RND512P((uint8_t*)z, y, 0x00000002);
-	RND512P((uint8_t*)y, z, 0x00000003);
-	RND512P((uint8_t*)z, y, 0x00000004);
-	RND512P((uint8_t*)y, z, 0x00000005);
-	RND512P((uint8_t*)z, y, 0x00000006);
-	RND512P((uint8_t*)y, z, 0x00000007);
-	RND512P((uint8_t*)z, y, 0x00000008);
-	RND512P((uint8_t*)y, temp, 0x00000009);
-	for (j = 0; j < 2*COLS512; j++) {
-	  ctx->chaining[j] ^= temp[j];
-	}									  
+    for (j = 0; j < 2*COLS512; j++) {
+      temp[j] = ctx->chaining[j];
+    }
+    RND512P((uint8_t*)temp, y, 0x00000000);
+    RND512P((uint8_t*)y, z, 0x00000001);
+    RND512P((uint8_t*)z, y, 0x00000002);
+    RND512P((uint8_t*)y, z, 0x00000003);
+    RND512P((uint8_t*)z, y, 0x00000004);
+    RND512P((uint8_t*)y, z, 0x00000005);
+    RND512P((uint8_t*)z, y, 0x00000006);
+    RND512P((uint8_t*)y, z, 0x00000007);
+    RND512P((uint8_t*)z, y, 0x00000008);
+    RND512P((uint8_t*)y, temp, 0x00000009);
+    for (j = 0; j < 2*COLS512; j++) {
+      ctx->chaining[j] ^= temp[j];
+    }
 }
 
 /* initialise context */
@@ -209,7 +209,7 @@ static void Init(hashState* ctx) {
 
   for(;i<(SIZE512/sizeof(uint32_t));i++)
   {
-	ctx->chaining[i] = 0;
+    ctx->chaining[i] = 0;
   }
 
   /* set initial value */
@@ -224,8 +224,8 @@ static void Init(hashState* ctx) {
 
 /* update state with databitlen bits of input */
 static void Update(hashState* ctx,
-		  const BitSequence* input,
-		  DataLength databitlen) {
+          const BitSequence* input,
+          DataLength databitlen) {
   int index = 0;
   int msglen = (int)(databitlen/8);
   int rem = (int)(databitlen%8);
@@ -239,8 +239,8 @@ static void Update(hashState* ctx,
     if (ctx->buf_ptr < SIZE512) {
       /* buffer still not full, return */
       if (rem) {
-	ctx->bits_in_last_byte = rem;
-	ctx->buffer[(int)ctx->buf_ptr++] = input[index];
+    ctx->bits_in_last_byte = rem;
+    ctx->buffer[(int)ctx->buf_ptr++] = input[index];
       }
       return;
     }
@@ -273,7 +273,7 @@ static void Update(hashState* ctx,
 /* finalise: process remaining data (including padding), perform
    output transformation, and write hash result to 'output' */
 static void Final(hashState* ctx,
-		 BitSequence* output) {
+         BitSequence* output) {
   int i, j = 0, hashbytelen = HASH_BIT_LEN/8;
   uint8_t *s = (BitSequence*)ctx->chaining;
 
@@ -313,7 +313,7 @@ static void Final(hashState* ctx,
     ctx->block_counter2 >>= 8;
   }
   /* digest final padding block */
-  Transform(ctx, ctx->buffer, SIZE512); 
+  Transform(ctx, ctx->buffer, SIZE512);
   /* perform output transformation */
   OutputTransformation(ctx);
 
@@ -332,9 +332,9 @@ static void Final(hashState* ctx,
 }
 
 /* hash bit sequence */
-void groestl(const BitSequence* data, 
-		DataLength databitlen,
-		BitSequence* hashval) {
+void groestl(const BitSequence* data,
+        DataLength databitlen,
+        BitSequence* hashval) {
 
   hashState context;
 
@@ -350,8 +350,8 @@ void groestl(const BitSequence* data,
 }
 /*
 static int crypto_hash(unsigned char *out,
-		const unsigned char *in,
-		unsigned long long len)
+        const unsigned char *in,
+        unsigned long long len)
 {
   groestl(in, 8*len, out);
   return 0;
