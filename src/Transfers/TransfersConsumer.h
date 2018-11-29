@@ -2,6 +2,10 @@
 // Copyright (c) 2017-2019, The Iridium developers
 // You should have received a copy of the GNU Lesser General Public License
 // If not, see <http://www.gnu.org/licenses/>.
+// Copyright (c) 2018, The BBSCoin Developers
+// Copyright (c) 2018, The Karbo Developers
+// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018, The Iridium Developer
 
 #pragma once
 
@@ -33,6 +37,8 @@ public:
   void getSubscriptions(std::vector<AccountPublicAddress>& subscriptions);
 
   void initTransactionPool(const std::unordered_set<Crypto::Hash>& uncommitedTransactions);
+
+  void addPublicKeysSeen(const Crypto::Hash& transactionHash, const Crypto::PublicKey& outputKey);
   
   // IBlockchainConsumer
   virtual SynchronizationStart getSyncStart() override;
