@@ -32,6 +32,9 @@ namespace CryptoNote {
       a & m_creation_timestamp;
     }
 
+    void generateViewFromSpend(Crypto::SecretKey &spend, Crypto::SecretKey &viewSecret, Crypto::PublicKey &viewPublic);
+    void generateViewFromSpend(Crypto::SecretKey &spend, Crypto::SecretKey &viewSecret);
+
   private:
     void setNull();
     AccountKeys m_keys;

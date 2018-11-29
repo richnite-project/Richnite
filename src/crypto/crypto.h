@@ -1,4 +1,6 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
+// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2016-2018, The Karbowanec developers
 // Copyright (c) 2017-2019, The Iridium developers
 // You should have received a copy of the GNU Lesser General Public License
 // If not, see <http://www.gnu.org/licenses/>.
@@ -40,6 +42,10 @@ struct EllipticCurveScalar {
 
     static void generate_keys(PublicKey &, SecretKey &);
     friend void generate_keys(PublicKey &, SecretKey &);
+    static void generate_deterministic_keys(PublicKey &pub, SecretKey &sec, SecretKey& second);
+    friend void generate_deterministic_keys(PublicKey &pub, SecretKey &sec, SecretKey& second);
+    static SecretKey generate_m_keys(PublicKey &pub, SecretKey &sec, const SecretKey& recovery_key = SecretKey(), bool recover = false);
+    friend SecretKey generate_m_keys(PublicKey &pub, SecretKey &sec, const SecretKey& recovery_key, bool recover);
     static bool check_key(const PublicKey &);
     friend bool check_key(const PublicKey &);
     static bool secret_key_to_public_key(const SecretKey &, PublicKey &);
@@ -129,6 +135,14 @@ struct EllipticCurveScalar {
     crypto_ops::generate_keys(pub, sec);
   }
 
+  inline void generate_deterministic_keys(PublicKey &pub, SecretKey &sec, SecretKey& second) {
+    crypto_ops::generate_deterministic_keys(pub, sec, second);
+  }
+
+  inline SecretKey generate_m_keys(PublicKey &pub, SecretKey &sec, const SecretKey& recovery_key = SecretKey(), bool recover = false) {
+    return crypto_ops::generate_m_keys(pub, sec, recovery_key, recover);
+  }
+
   /* Check a public key. Returns true if it is valid, false otherwise.
    */
   inline bool check_key(const PublicKey &key) {
@@ -166,7 +180,7 @@ struct EllipticCurveScalar {
     const PublicKey &derived_key, PublicKey &base, EllipticCurveScalar &hashed_derivation) {
     return crypto_ops::underive_public_key_and_get_scalar(derivation, output_index, derived_key, base, hashed_derivation);
   }
-  
+
   inline void derive_secret_key(const KeyDerivation &derivation, std::size_t output_index,
     const SecretKey &base, const uint8_t* prefix, size_t prefixLength, SecretKey &derived_key) {
     crypto_ops::derive_secret_key(derivation, output_index, base, prefix, prefixLength, derived_key);

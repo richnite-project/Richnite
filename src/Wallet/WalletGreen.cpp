@@ -314,10 +314,9 @@ void WalletGreen::initWithKeys(const std::string& path, const std::string& passw
   prefix->version = static_cast<uint8_t>(WalletSerializerV2::SERIALIZATION_VERSION);
   prefix->nextIv = Crypto::rand<Crypto::chacha8_iv>();
 
-  Crypto::cn_context cnContext;
-  Crypto::generate_chacha8_key(cnContext, password, m_key);
+  Crypto::generate_chacha8_key(password, m_key);
 
-  uint64_t creationTimestamp = time(nullptr);
+  uint64_t creationTimestamp = static_cast<uint64_t>(time(nullptr));
   prefix->encryptedViewKeys = encryptKeyPair(viewPublicKey, viewSecretKey, creationTimestamp, m_key, prefix->nextIv);
 
   newStorage.flush();
@@ -383,8 +382,7 @@ void WalletGreen::exportWallet(const std::string& path, bool encrypt, WalletSave
     if (encrypt) {
       newStorageKey = m_key;
     } else {
-      cn_context cnContext;
-      generate_chacha8_key(cnContext, "", newStorageKey);
+      generate_chacha8_key("", newStorageKey);
     }
 
     copyContainerStoragePrefix(m_containerStorage, m_key, newStorage, newStorageKey);
@@ -468,8 +466,7 @@ void WalletGreen::load(const std::string& path, const std::string& password, std
 
   stopBlockchainSynchronizer();
 
-  Crypto::cn_context cnContext;
-  generate_chacha8_key(cnContext, password, m_key);
+  generate_chacha8_key(password, m_key);
 
   std::ifstream walletFileStream(path, std::ios_base::binary);
   int version = walletFileStream.peek();
@@ -781,12 +778,12 @@ void WalletGreen::deleteOrphanTransactions(const std::unordered_set<Crypto::Publ
 }
 
 void WalletGreen::loadSpendKeys() {
-  bool isTrackingMode;
+  bool isTrackingMode = false;
   for (size_t i = 0; i < m_containerStorage.size(); ++i) {
     WalletRecord wallet;
     uint64_t creationTimestamp;
     decryptKeyPair(m_containerStorage[i], wallet.spendPublicKey, wallet.spendSecretKey, creationTimestamp);
-    wallet.creationTimestamp = creationTimestamp;
+    wallet.creationTimestamp = static_cast<time_t>(creationTimestamp);
 
     if (i == 0) {
       isTrackingMode = wallet.spendSecretKey == NULL_SECRET_KEY;
@@ -928,9 +925,8 @@ void WalletGreen::changePassword(const std::string& oldPassword, const std::stri
     return;
   }
 
-  Crypto::cn_context cnContext;
   Crypto::chacha8_key newKey;
-  Crypto::generate_chacha8_key(cnContext, newPassword, newKey);
+  Crypto::generate_chacha8_key(newPassword, newKey);
 
   m_containerStorage.atomicUpdate([this, newKey](ContainerStorage& newStorage) {
     copyContainerStoragePrefix(m_containerStorage, m_key, newStorage, newKey);

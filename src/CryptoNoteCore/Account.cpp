@@ -1,10 +1,9 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
-// Copyright (c) 2017-2019, The Iridium developers
-// You should have received a copy of the GNU Lesser General Public License
-// If not, see <http://www.gnu.org/licenses/>.
+// Copyright (c) 2014-2018, The Monero Project
 
 #include "Account.h"
 #include "CryptoNoteSerialization.h"
+#include "crypto/keccak.c"
 
 namespace CryptoNote {
 //-----------------------------------------------------------------
@@ -17,9 +16,25 @@ void AccountBase::setNull() {
 }
 //-----------------------------------------------------------------
 void AccountBase::generate() {
+
   Crypto::generate_keys(m_keys.address.spendPublicKey, m_keys.spendSecretKey);
-  Crypto::generate_keys(m_keys.address.viewPublicKey, m_keys.viewSecretKey);
-  m_creation_timestamp = time(NULL);
+
+  generateViewFromSpend(m_keys.spendSecretKey, m_keys.viewSecretKey, m_keys.address.viewPublicKey);
+  m_creation_timestamp = static_cast<uint64_t>(time(nullptr));
+
+}
+void AccountBase::generateViewFromSpend(Crypto::SecretKey &spend, Crypto::SecretKey &viewSecret, Crypto::PublicKey &viewPublic) {
+  Crypto::SecretKey viewKeySeed;
+
+  keccak((uint8_t *)&spend, sizeof(spend), (uint8_t *)&viewKeySeed, sizeof(viewKeySeed));
+
+  Crypto::generate_deterministic_keys(viewPublic, viewSecret, viewKeySeed);
+}
+
+void AccountBase::generateViewFromSpend(Crypto::SecretKey &spend, Crypto::SecretKey &viewSecret) {
+  /* If we don't need the pub key */
+  Crypto::PublicKey unused_dummy_variable;
+  generateViewFromSpend(spend, viewSecret, unused_dummy_variable);
 }
 //-----------------------------------------------------------------
 const AccountKeys &AccountBase::getAccountKeys() const {
