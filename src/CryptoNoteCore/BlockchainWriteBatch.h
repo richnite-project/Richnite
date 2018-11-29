@@ -16,8 +16,7 @@ namespace CryptoNote {
 class BlockchainWriteBatch : public IWriteBatch {
 public:
   BlockchainWriteBatch();
-  ~BlockchainWriteBatch();
-
+  virtual ~BlockchainWriteBatch() override;
   BlockchainWriteBatch& insertSpentKeyImages(uint32_t blockIndex, const std::unordered_set<Crypto::KeyImage>& spentKeyImages);
   BlockchainWriteBatch& insertCachedTransaction(const ExtendedTransactionInfo& transaction, uint64_t totalTxsCount);
   BlockchainWriteBatch& insertPaymentId(const Crypto::Hash& transactionHash, const Crypto::Hash paymentId, uint32_t totalTxsCountForPaymentId);

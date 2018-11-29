@@ -25,7 +25,7 @@ class HttpClient {
 public:
 
   HttpClient(System::Dispatcher& dispatcher, const std::string& address, uint16_t port);
-  ~HttpClient();
+  virtual ~HttpClient();
   void request(const HttpRequest& req, HttpResponse& res);
   
   bool isConnected() const;
@@ -49,6 +49,7 @@ void invokeJsonCommand(HttpClient& client, const std::string& url, const Request
   HttpResponse hres;
 
   hreq.setUrl(url);
+  hreq.addHeader("Content-Type", "application/json");
   hreq.setBody(storeToJson(req));
   client.request(hreq, hres);
 

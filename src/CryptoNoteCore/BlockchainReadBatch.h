@@ -113,8 +113,7 @@ private:
 class BlockchainReadBatch : public IReadBatch {
 public:
   BlockchainReadBatch();
-  ~BlockchainReadBatch();
-
+  virtual ~BlockchainReadBatch() override;
   BlockchainReadBatch& requestSpentKeyImagesByBlock(uint32_t blockIndex);
   BlockchainReadBatch& requestBlockIndexBySpentKeyImage(const Crypto::KeyImage& keyImage);
   BlockchainReadBatch& requestCachedTransaction(const Crypto::Hash& txHash);

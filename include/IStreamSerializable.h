@@ -13,6 +13,7 @@ class IStreamSerializable {
 public:
   virtual void save(std::ostream& os) = 0;
   virtual void load(std::istream& in) = 0;
+  virtual ~IStreamSerializable(){}
 };
 
 }

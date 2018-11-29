@@ -14,7 +14,7 @@ namespace CryptoNote {
 class JsonOutputStreamSerializer : public ISerializer {
 public:
   JsonOutputStreamSerializer();
-  virtual ~JsonOutputStreamSerializer();
+  virtual ~JsonOutputStreamSerializer() override;
 
   SerializerType type() const override;
 

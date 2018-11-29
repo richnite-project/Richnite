@@ -782,6 +782,7 @@ std::error_code NodeRpcProxy::jsonRpcCommand(const std::string& method, const Re
     HttpResponse httpRes;
 
     httpReq.setUrl("/json_rpc");
+    httpReq.addHeader("Content-Type", "application/json");
     httpReq.setBody(jsReq.getBody());
 
     m_httpClient->request(httpReq, httpRes);

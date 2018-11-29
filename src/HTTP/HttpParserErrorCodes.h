@@ -22,7 +22,6 @@ enum HttpParserErrorCodes {
 class HttpParserErrorCategory : public std::error_category {
 public:
   static HttpParserErrorCategory INSTANCE;
-
   virtual const char* name() const throw() override {
     return "HttpParserErrorCategory";
   }

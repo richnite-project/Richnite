@@ -8,7 +8,7 @@
 #include <vector>
 #include <CryptoNote.h>
 #include <CryptoTypes.h>
-//#include <Serialization/ISerializer.h>
+#include <Serialization/ISerializer.h>
 
 namespace CryptoNote {
 
