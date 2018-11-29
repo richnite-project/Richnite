@@ -37,7 +37,7 @@ class HttpClient {
 public:
 
   HttpClient(System::Dispatcher& dispatcher, const std::string& address, uint16_t port);
-  ~HttpClient();
+  virtual ~HttpClient();
   void request(const HttpRequest& req, HttpResponse& res);
   
   bool isConnected() const;

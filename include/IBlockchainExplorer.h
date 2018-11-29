@@ -32,13 +32,12 @@ public:
 
   virtual void blockchainUpdated(const std::vector<BlockDetails>& newBlocks, const std::vector<BlockDetails>& alternativeBlocks) {}
   virtual void poolUpdated(const std::vector<TransactionDetails>& newTransactions, const std::vector<std::pair<Crypto::Hash, TransactionRemoveReason>>& removedTransactions) {}
-
   virtual void blockchainSynchronized(const BlockDetails& topBlock) {}
 };
 
 class IBlockchainExplorer {
 public:
-  virtual ~IBlockchainExplorer() {};
+  virtual ~IBlockchainExplorer() {}
 
   virtual bool addObserver(IBlockchainObserver* observer) = 0;
   virtual bool removeObserver(IBlockchainObserver* observer) = 0;

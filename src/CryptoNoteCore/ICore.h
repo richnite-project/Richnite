@@ -37,8 +37,7 @@ enum class CoreEvent { POOL_UPDATED, BLOCKHAIN_UPDATED };
 
 class ICore {
 public:
-  virtual ~ICore() {
-  }
+  virtual ~ICore() {}
 
   virtual bool addMessageQueue(MessageQueue<BlockchainMessage>& messageQueue) = 0;
   virtual bool removeMessageQueue(MessageQueue<BlockchainMessage>& messageQueue) = 0;

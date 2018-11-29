@@ -29,8 +29,8 @@ namespace CryptoNote {
 //Blocking HttpParser
 class HttpParser {
 public:
-  HttpParser() {};
-
+  HttpParser() {}
+  virtual ~HttpParser() {}
   void receiveRequest(std::istream& stream, HttpRequest& request);
   void receiveResponse(std::istream& stream, HttpResponse& response);
   static HttpResponse::HTTP_STATUS parseResponseStatusFromString(const std::string& status);

@@ -23,12 +23,11 @@
 
 using namespace CryptoNote;
 
-
 BlockchainReadBatch::BlockchainReadBatch() {
 
 }
 
-BlockchainReadBatch::~BlockchainReadBatch() {
+BlockchainReadBatch::~BlockchainReadBatch(){
 
 }
 

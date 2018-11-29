@@ -17,13 +17,15 @@
 
 #pragma once
 #include <cstdint>
+#include <vector>
+#include <stddef.h>
+#include "CryptoNote.h"
 
 namespace CryptoNote {
 
 class ICoreInformation {
 public:
   virtual ~ICoreInformation() {}
-
   virtual size_t getPoolTransactionCount() const = 0;
   virtual size_t getBlockchainTransactionCount() const = 0;
   virtual size_t getAlternativeBlockCount() const = 0;

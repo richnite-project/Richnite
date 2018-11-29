@@ -37,6 +37,7 @@ class HttpServer {
 public:
 
   HttpServer(System::Dispatcher& dispatcher, Logging::ILogger& log);
+  virtual ~HttpServer(){}
 
   void start(const std::string& address, uint16_t port);
   void stop();

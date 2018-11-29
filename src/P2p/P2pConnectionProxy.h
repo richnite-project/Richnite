@@ -33,8 +33,6 @@ class P2pConnectionProxy : public IP2pConnection {
 public:
 
   P2pConnectionProxy(P2pContextOwner&& ctx, IP2pNodeInternal& node);
-  ~P2pConnectionProxy();
-
   bool processIncomingHandshake();
 
   // IP2pConnection
@@ -42,6 +40,7 @@ public:
   virtual void write(const P2pMessage &message) override;
   virtual void ban() override;
   virtual void stop() override;
+  ~P2pConnectionProxy() override;
 
 private:
 
