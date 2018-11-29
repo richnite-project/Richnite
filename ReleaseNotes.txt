@@ -1,3 +1,4 @@
+Byecoin Release notes
 Release notes 2.1.2
 
 - Updated RocksDB to release 4.11.2
