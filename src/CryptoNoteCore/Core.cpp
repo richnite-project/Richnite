@@ -1072,7 +1072,7 @@ bool Core::getBlockTemplate(BlockTemplate& b, const AccountPublicAddress& adr, c
   }
 
   b.previousBlockHash = getTopBlockHash();
-  b.timestamp = time(nullptr);
+  b.timestamp = static_cast<uint64_t>(time(nullptr));
 
   // https://github.com/graft-project/GraftNetwork/pull/118/commits
   // Thanks Jagerman for this
@@ -1508,14 +1508,14 @@ std::error_code Core::validateBlock(const CachedBlock& cachedBlock, IBlockchainC
 
   minerReward = 0;
 
-  if (upgradeManager->getBlockMajorVersion(cachedBlock.getBlockIndex()) != block.majorVersion) {
+  if (upgradeManager->getBlockMajorVersion(previousBlockIndex+1) != block.majorVersion) {
     return error::BlockValidationError::WRONG_VERSION;
   }
 
   if (block.majorVersion >= BLOCK_MAJOR_VERSION_2) {
     if (block.majorVersion == BLOCK_MAJOR_VERSION_2 && block.parentBlock.majorVersion > BLOCK_MAJOR_VERSION_1) {
       logger(Logging::ERROR, Logging::BRIGHT_RED) << "Parent block of block " << cachedBlock.getBlockHash() << " has wrong major version: "
-                                << static_cast<int>(block.parentBlock.majorVersion) << ", at index " << cachedBlock.getBlockIndex()
+                                << static_cast<int>(block.parentBlock.majorVersion) << ", at index " << previousBlockIndex+1
                                 << " expected version is " << static_cast<int>(BLOCK_MAJOR_VERSION_1);
       return error::BlockValidationError::PARENT_BLOCK_WRONG_VERSION;
     }
@@ -1529,11 +1529,13 @@ std::error_code Core::validateBlock(const CachedBlock& cachedBlock, IBlockchainC
     return error::BlockValidationError::TIMESTAMP_TOO_FAR_IN_FUTURE;
   }
 
-  auto timestamps = cache->getLastTimestamps(currency.timestampCheckWindow(), previousBlockIndex, addGenesisBlock);
-  if (timestamps.size() >= currency.timestampCheckWindow()) {
+  auto checkWindow = block.majorVersion >= BLOCK_MAJOR_VERSION_4 ? currency.timestampCheckWindowV4() : currency.timestampCheckWindow();
+  auto timestamps = cache->getLastTimestamps(checkWindow, previousBlockIndex, addGenesisBlock);
+
+  if (timestamps.size() >= checkWindow) {
     auto median_ts = Common::medianValue(timestamps);
     if (block.timestamp < median_ts) {
-      return error::BlockValidationError::TIMESTAMP_TOO_FAR_IN_PAST;
+        return error::BlockValidationError::TIMESTAMP_TOO_FAR_IN_PAST;
     }
   }
 

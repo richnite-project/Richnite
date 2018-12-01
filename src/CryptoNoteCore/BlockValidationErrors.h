@@ -26,6 +26,7 @@ namespace error {
 enum class BlockValidationError {
   VALIDATION_SUCCESS = 0,
   WRONG_VERSION,
+  WRONG_MINOR_VERSION,
   PARENT_BLOCK_SIZE_TOO_BIG,
   PARENT_BLOCK_WRONG_VERSION,
   TIMESTAMP_TOO_FAR_IN_FUTURE,
@@ -57,6 +58,7 @@ public:
     switch (code) {
       case BlockValidationError::VALIDATION_SUCCESS: return "Block validated successfully";
       case BlockValidationError::WRONG_VERSION: return "Wrong block version";
+      case BlockValidationError::WRONG_MINOR_VERSION: return "Wrong block minor version";
       case BlockValidationError::PARENT_BLOCK_SIZE_TOO_BIG: return "Parent block size is too big";
       case BlockValidationError::PARENT_BLOCK_WRONG_VERSION: return "Parent block has wrong version";
       case BlockValidationError::TIMESTAMP_TOO_FAR_IN_FUTURE: return "Timestamp is too far in future";
