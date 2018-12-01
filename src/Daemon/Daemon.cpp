@@ -56,7 +56,7 @@ namespace
     "network id is changed. Use it with --data-dir flag. The wallet must be launched with --testnet flag.", false};
 }
 
-bool command_line_preprocessor(const boost::program_options::variables_map& vm, LoggerRef& logger);
+bool command_line_preprocessor(const boost::program_options::variables_map& vm);
 
 JsonValue buildLoggerConfiguration(Level level, const std::string& logfile) {
   JsonValue loggerConfiguration(JsonValue::OBJECT);
@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
 
     if (!r)
       return 1;
-  
+
     auto modulePath = Common::NativePathToGeneric(argv[0]);
     auto cfgLogFile = Common::NativePathToGeneric(command_line::get_arg(vm, arg_log_file));
 
@@ -154,7 +154,7 @@ int main(int argc, char* argv[])
       }
     }
 
-    Level cfgLogLevel = static_cast<Level>(static_cast<int>(Logging::ERROR) + command_line::get_arg(vm, arg_log_level));
+    auto cfgLogLevel = static_cast<Level>(Logging::ERROR + command_line::get_arg(vm, arg_log_level));
 
     // configure logging
     logManager.configure(buildLoggerConfiguration(cfgLogLevel, cfgLogFile));
@@ -183,7 +183,7 @@ int main(int argc, char* argv[])
         checkpoints.addCheckpoint(cp.index, cp.blockId);
       }
     }
-    
+
     NetNodeConfig netNodeConfig;
     netNodeConfig.init(vm);
     netNodeConfig.setTestnet(testnet_mode);
@@ -285,7 +285,7 @@ int main(int argc, char* argv[])
   return 0;
 }
 
-bool command_line_preprocessor(const boost::program_options::variables_map &vm, LoggerRef &logger) {
+bool command_line_preprocessor(const boost::program_options::variables_map &vm) {
   bool exit = false;
 
   if (command_line::get_arg(vm, command_line::arg_version)) {
@@ -297,9 +297,5 @@ bool command_line_preprocessor(const boost::program_options::variables_map &vm, 
     exit = true;
   }
 
-  if (exit) {
-    return true;
-  }
-
-  return false;
+  return exit;
 }

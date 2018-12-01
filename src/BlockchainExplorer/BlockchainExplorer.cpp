@@ -143,7 +143,7 @@ BlockchainExplorer::BlockchainExplorer(INode& node, Logging::ILogger& logger) :
   database(database){
 }
 
-BlockchainExplorer::~BlockchainExplorer() {}
+//BlockchainExplorer::~BlockchainExplorer() {}
     
 bool BlockchainExplorer::addObserver(IBlockchainObserver* observer) {
   if (state.load() != INITIALIZED) {

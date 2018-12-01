@@ -69,7 +69,7 @@ std::string DaemonCommandsHandler::get_commands_str()
 }
 
 //--------------------------------------------------------------------------------
-bool DaemonCommandsHandler::exit(const std::vector<std::string>& args) {
+bool DaemonCommandsHandler::exit(const std::vector<std::string> &args) {
   m_consoleHandler.requestStop();
   m_srv.sendStopSignal();
   return true;
@@ -104,7 +104,7 @@ bool DaemonCommandsHandler::print_cn(const std::vector<std::string>& args)
 }
 //--------------------------------------------------------------------------------
 bool DaemonCommandsHandler::print_bc(const std::vector<std::string> &args) {
-  if (!args.size()) {
+  if (args.empty()) {
     std::cout << "need block index parameter" << ENDL;
     return false;
   }
@@ -186,7 +186,7 @@ bool DaemonCommandsHandler::print_block_by_height(uint32_t height)
 }
 //--------------------------------------------------------------------------------
 bool DaemonCommandsHandler::print_block_by_hash(const std::string& arg) {
-  Crypto::Hash block_hash;
+  Crypto::Hash block_hash;{}
   if (!parse_hash256(arg, block_hash)) {
     return false;
   }
@@ -209,7 +209,7 @@ bool DaemonCommandsHandler::print_block(const std::vector<std::string> &args) {
 
   const std::string &arg = args.front();
   try {
-    uint32_t height = boost::lexical_cast<uint32_t>(arg);
+    auto height = boost::lexical_cast<uint32_t>(arg);
     print_block_by_height(height);
   } catch (boost::bad_lexical_cast &) {
     print_block_by_hash(arg);
