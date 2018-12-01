@@ -66,14 +66,17 @@ bool Currency::init() {
         m_upgradeHeightV2 = m_testnetUpgradeHeightV2;
         m_upgradeHeightV3 = m_testnetUpgradeHeightV3;
         m_upgradeHeightV4 = m_testnetUpgradeHeightV4;
+        m_upgradeHeightV5 = m_testnetUpgradeHeightV5;
         m_difficultyTarget = m_testnet_DifficultyTarget;
         m_blocksFileName = "testnet_" + m_blocksFileName;
         m_blockIndexesFileName = "testnet_" + m_blockIndexesFileName;
         m_txPoolFileName = "testnet_" + m_txPoolFileName;
-        logger(INFO, RED) << "V2 Height : " << m_upgradeHeightV2;
-        logger(INFO, RED) << "V3 Height : " << m_upgradeHeightV3;
-        logger(INFO, RED) << "V4 Height : " << m_upgradeHeightV4;
-        logger(INFO, RED) << "Target : " << m_difficultyTarget << "s";
+        logger(INFO, BRIGHT_GREEN) << "Testnet Mode";
+        logger(INFO, WHITE) << "V2 Height : " << m_upgradeHeightV2;
+        logger(INFO, WHITE) << "V3 Height : " << m_upgradeHeightV3;
+        logger(INFO, WHITE) << "V4 Height : " << m_upgradeHeightV4;
+        logger(INFO, WHITE) << "V5 Height : " << m_upgradeHeightV5;
+        logger(INFO, WHITE) << "Target : " << m_difficultyTarget << "s";
     }
 
     return true;
@@ -115,7 +118,9 @@ bool Currency::generateGenesisBlock() {
 }
 
 size_t Currency::difficultyWindowByBlockVersion(uint8_t blockMajorVersion) const {
-    if (blockMajorVersion >= BLOCK_MAJOR_VERSION_4) {
+    if (blockMajorVersion >= BLOCK_MAJOR_VERSION_5) {
+        return CryptoNote::parameters::DIFFICULTY_WINDOW_V5;
+    } else if (blockMajorVersion == BLOCK_MAJOR_VERSION_4) {
         return CryptoNote::parameters::DIFFICULTY_WINDOW_V4;
     } else if (blockMajorVersion == BLOCK_MAJOR_VERSION_2 || blockMajorVersion == BLOCK_MAJOR_VERSION_3) {
         return CryptoNote::parameters::DIFFICULTY_WINDOW_V2;
@@ -132,9 +137,9 @@ size_t Currency::difficultyLagByBlockVersion(uint8_t blockMajorVersion) const {
     }
 }
 
-size_t Currency::difficultyCutByBlockVersion(uint8_t blockMajorVersion) const {
-        return CryptoNote::parameters::DIFFICULTY_CUT;
-}
+//size_t Currency::difficultyCutByBlockVersion() const {
+//        return CryptoNote::parameters::DIFFICULTY_CUT;
+//}
 
 size_t Currency::difficultyBlocksCountByBlockVersion(uint8_t blockMajorVersion) const {
     return difficultyWindowByBlockVersion(blockMajorVersion) + difficultyLagByBlockVersion(blockMajorVersion);
@@ -149,7 +154,9 @@ size_t Currency::blockGrantedFullRewardZoneByBlockVersion(uint8_t blockMajorVers
 }
 
 uint32_t Currency::upgradeHeight(uint8_t majorVersion) const {
-    if (majorVersion == BLOCK_MAJOR_VERSION_4) {
+    if (majorVersion == BLOCK_MAJOR_VERSION_5) {
+        return m_upgradeHeightV5;
+    } else if (majorVersion == BLOCK_MAJOR_VERSION_4) {
         return m_upgradeHeightV4;
     } else if (majorVersion == BLOCK_MAJOR_VERSION_3) {
         return m_upgradeHeightV3;
@@ -418,12 +425,13 @@ bool Currency::parseAmount(const std::string& str, uint64_t& amount) const {
 }
 
 Difficulty Currency::nextDifficulty(
-        uint8_t version,
-        uint32_t blockIndex,
+        uint8_t&  version,
+        uint32_t& blockIndex,
         std::vector<uint64_t> timestamps,
         std::vector<Difficulty> cumulativeDifficulties
         ) const {
     Difficulty nextDiff;
+    //test here for lwma-4
     if (version >= BLOCK_MAJOR_VERSION_4) {
         nextDiff = nextDifficultyV4(version,timestamps,cumulativeDifficulties);
     } else if (version == BLOCK_MAJOR_VERSION_3) {
@@ -447,10 +455,9 @@ Difficulty Currency::nextDifficulty(
 
 // Zawy's LWMA difficulty algorithm implementation V4 (60 solvetimes limits -7T/7T)
 // (60 solvetimes - limits -7T/7T - adjust = 0.9909)
-Difficulty Currency::nextDifficultyV4(
-        uint8_t &version,
-        std::vector<uint64_t> timestamps,
-        std::vector<Difficulty> cumulativeDifficulties
+Difficulty Currency::nextDifficultyV4(uint8_t &version,
+        std::vector<uint64_t> &timestamps,
+        std::vector<Difficulty> &cumulativeDifficulties
         ) const {
     const size_t c_difficultyWindow = difficultyWindowByBlockVersion(version); // 61
     const int64_t c_difficultyTarget = static_cast<int64_t>(m_difficultyTarget);
@@ -492,10 +499,9 @@ Difficulty Currency::nextDifficultyV4(
 // Zawy's LWMA difficulty algorithm implementation V3
 // ( 59 solvetimes intead of 60 - adjust = 0.9909 - -5T/6T limits - potential exploit fixed )
 
-Difficulty Currency::nextDifficultyV3(
-        uint8_t &version,
-        std::vector<uint64_t> timestamps,
-        std::vector<Difficulty> cumulativeDifficulties
+Difficulty Currency::nextDifficultyV3(uint8_t &version,
+        std::vector<uint64_t> &timestamps,
+        std::vector<Difficulty> &cumulativeDifficulties
         ) const {
     size_t c_difficultyWindow = difficultyWindowByBlockVersion(version);
     int64_t c_difficultyTarget = static_cast<int64_t>(m_difficultyTarget);
@@ -540,10 +546,9 @@ Difficulty Currency::nextDifficultyV3(
 
 // First Zawy's LWMA difficulty algorithm implementation at block 69500
 // ( 59 solvetimes intead of 60 - adjust = 0.9912338056 - potential exploit due to uint solvetimes)
-Difficulty Currency::nextDifficultyV2(
-        uint8_t &version,
-        std::vector<uint64_t> timestamps,
-        std::vector<Difficulty> cumulativeDifficulties
+Difficulty Currency::nextDifficultyV2(uint8_t &version,
+        std::vector<uint64_t> &timestamps,
+        std::vector<Difficulty> &cumulativeDifficulties
         ) const {
     size_t c_difficultyWindow = difficultyWindowByBlockVersion(version);
     int64_t c_difficultyTarget = static_cast<int64_t>(m_difficultyTarget);
@@ -584,13 +589,12 @@ Difficulty Currency::nextDifficultyV2(
 }
 
 // Original difficulty algorithm implementation
-Difficulty Currency::nextDifficultyV1(
-        uint8_t &version,
-        std::vector<uint64_t> timestamps,
-        std::vector<Difficulty> cumulativeDifficulties
+Difficulty Currency::nextDifficultyV1(uint8_t &version,
+        std::vector<uint64_t> &timestamps,
+        std::vector<Difficulty> &cumulativeDifficulties
         ) const {
     size_t c_difficultyWindow = difficultyWindowByBlockVersion(version);
-    size_t c_difficultyCut = difficultyCutByBlockVersion(version);
+    size_t c_difficultyCut = CryptoNote::parameters::DIFFICULTY_CUT;
     assert(c_difficultyWindow >= 2);
     if (timestamps.size() > c_difficultyWindow) {
         timestamps.resize(c_difficultyWindow);
@@ -675,7 +679,8 @@ bool Currency::checkProofOfWork(const CachedBlock& block, Difficulty currentDiff
     case BLOCK_MAJOR_VERSION_2:
     case BLOCK_MAJOR_VERSION_3:
     case BLOCK_MAJOR_VERSION_4:
-        return checkProofOfWorkV2(block, currentDiffic);
+    case BLOCK_MAJOR_VERSION_5:
+        return checkProofOfWorkV2(context, block, currentDiffic);
     }
 
     logger(ERROR, BRIGHT_RED) << "Unknown block major version: " << block.getBlock().majorVersion << "." << block.getBlock().minorVersion;
@@ -741,9 +746,11 @@ Currency::Currency(Currency&& currency) :
     m_upgradeHeightV2(currency.m_upgradeHeightV2),
     m_upgradeHeightV3(currency.m_upgradeHeightV3),
     m_upgradeHeightV4(currency.m_upgradeHeightV4),
+    m_upgradeHeightV5(currency.m_upgradeHeightV5),
     m_testnetUpgradeHeightV2(currency.m_testnetUpgradeHeightV2),
     m_testnetUpgradeHeightV3(currency.m_testnetUpgradeHeightV3),
     m_testnetUpgradeHeightV4(currency.m_testnetUpgradeHeightV4),
+    m_testnetUpgradeHeightV5(currency.m_testnetUpgradeHeightV5),
     m_upgradeVotingThreshold(currency.m_upgradeVotingThreshold),
     m_upgradeVotingWindow(currency.m_upgradeVotingWindow),
     m_upgradeWindow(currency.m_upgradeWindow),
@@ -812,10 +819,12 @@ CurrencyBuilder::CurrencyBuilder(Logging::ILogger& log) : m_currency(log) {
     upgradeHeightV2(parameters::UPGRADE_HEIGHT_V2);
     upgradeHeightV3(parameters::UPGRADE_HEIGHT_V3);
     upgradeHeightV4(parameters::UPGRADE_HEIGHT_V4);
+    upgradeHeightV5(parameters::UPGRADE_HEIGHT_V5);
 
     testnetUpgradeHeightV2(parameters::TESTNET_UPGRADE_HEIGHT_V2);
     testnetUpgradeHeightV3(parameters::TESTNET_UPGRADE_HEIGHT_V3);
     testnetUpgradeHeightV4(parameters::TESTNET_UPGRADE_HEIGHT_V4);
+    testnetUpgradeHeightV5(parameters::TESTNET_UPGRADE_HEIGHT_V5);
 
     upgradeVotingThreshold(parameters::UPGRADE_VOTING_THRESHOLD);
     upgradeVotingWindow(parameters::UPGRADE_VOTING_WINDOW);
