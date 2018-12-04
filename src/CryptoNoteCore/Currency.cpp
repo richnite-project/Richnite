@@ -67,7 +67,8 @@ bool Currency::init() {
         m_upgradeHeightV3 = m_testnetUpgradeHeightV3;
         m_upgradeHeightV4 = m_testnetUpgradeHeightV4;
         m_upgradeHeightV5 = m_testnetUpgradeHeightV5;
-        m_difficultyTarget = m_testnet_DifficultyTarget;
+        m_difficultyTarget = m_testnetDifficultyTarget;
+        m_difficultyGuess = m_testnetDifficultyGuess;
         m_blocksFileName = "testnet_" + m_blocksFileName;
         m_blockIndexesFileName = "testnet_" + m_blockIndexesFileName;
         m_txPoolFileName = "testnet_" + m_txPoolFileName;
@@ -77,6 +78,7 @@ bool Currency::init() {
         logger(INFO, WHITE) << "V4 Height : " << m_upgradeHeightV4;
         logger(INFO, WHITE) << "V5 Height : " << m_upgradeHeightV5;
         logger(INFO, WHITE) << "Target : " << m_difficultyTarget << "s";
+        logger(INFO, WHITE) << "Guess : " << m_difficultyGuess;
     }
 
     return true;
@@ -431,8 +433,19 @@ Difficulty Currency::nextDifficulty(
         std::vector<Difficulty> cumulativeDifficulties
         ) const {
     Difficulty nextDiff;
-    //test here for lwma-4
-    if (version >= BLOCK_MAJOR_VERSION_4) {
+    if (version >= BLOCK_MAJOR_VERSION_5) {
+        nextDiff = nextDifficultyV5(
+                    timestamps,
+                    cumulativeDifficulties,
+                    m_difficultyTarget,
+                    m_difficultyCut,
+                    blockIndex,
+                    m_upgradeHeightV5,
+                    m_difficultyGuess,
+                    static_cast<int64_t>(time(nullptr)),
+                    5
+                    );
+    } else if (version == BLOCK_MAJOR_VERSION_4) {
         nextDiff = nextDifficultyV4(version,timestamps,cumulativeDifficulties);
     } else if (version == BLOCK_MAJOR_VERSION_3) {
         nextDiff = nextDifficultyV3(version,timestamps,cumulativeDifficulties);
@@ -447,12 +460,81 @@ Difficulty Currency::nextDifficulty(
     return nextDiff;
 }
 
-// LWMA difficulty algorithm
+
+// TSA, Time Stamp Adjustment to Difficulty
+// Copyright (c) 2018 Zawy, MIT License.
+// See https://github.com/zawy12/difficulty-algorithms/issues/36
+// Changes difficulty in current block based on template's timestamp.
+// FTL must be lowered to 30 seconds. CN coins / pools must fix their universal timestamp problem.
+// CN coins must get pool software jobs & nodes issuing templates to update template timestamp
+// to current network time at least once every 10 seconds, not merely setting it to arrival time
+// of previous block. Miners outside of pools need to update it without asking for new template.
+Difficulty Currency::nextDifficultyV5(
+        std::vector<uint64_t> timestamps,
+        std::vector<uint64_t> cumulative_difficulties,
+        uint64_t T,
+        uint64_t N,
+        uint64_t height,
+        uint64_t FORK_HEIGHT,
+        uint64_t  difficulty_guess,
+        int64_t template_timestamp,
+        int64_t M ) const {
+    logger(INFO,BLUE) << "Height: " << height << " TsSize: " << timestamps.size() << " CumulDsize: " << cumulative_difficulties.size();
+    logger(INFO,BLUE) << "Target: " << T << " Upgrade: " << FORK_HEIGHT << " Guess: " << difficulty_guess;
+   uint64_t  L(0), next_D, i, this_timestamp(0), previous_timestamp(0), avg_D;
+   assert(timestamps.size() == cumulative_difficulties.size() && timestamps.size() <= N+1 );
+   // Hard code D if there are not at least N+1 BLOCKS after fork or genesis
+//   if (height >= FORK_HEIGHT && height <= FORK_HEIGHT + N+1) { return difficulty_guess; }
+   assert(timestamps.size() == N+1);
+   previous_timestamp = timestamps[0]-T;
+   for ( i = 1; i <= N; i++) {
+      // Safely prevent out-of-sequence timestamps
+      if ( timestamps[i]  >= previous_timestamp ) {   this_timestamp = timestamps[i];  }
+      else {  this_timestamp = previous_timestamp+1;   }
+      L +=  i*std::min(6*T ,this_timestamp - previous_timestamp);
+      logger(INFO,BLUE) << "i: " << i << " ST: " << this_timestamp - previous_timestamp;
+      previous_timestamp = this_timestamp;
+   }
+   logger(INFO,WHITE) << "avgST(" << N <<"): " << (timestamps.back() - timestamps.front())/ N;
+   avg_D = ( cumulative_difficulties[N] - cumulative_difficulties[0] )/ N;
+   logger(INFO,WHITE) << "avgHR(11): " << static_cast<double>((cumulative_difficulties[N] - cumulative_difficulties[N-11])/11/T);
+   logger(INFO,WHITE) << "avgHR(60): " << static_cast<double>(avg_D/T);
+
+   // Prevent round off error for small D and overflow for large D.
+   if (avg_D > 2000000*N*N*T) { next_D = (avg_D/(200*L))*(N*(N+1)*T*99);  }
+   else {    next_D = (avg_D*N*(N+1)*T*99)/(200*L);    }
+
+// LWMA is finished, now use its next_D and previous_timestamp
+// to get TSA's next_D.  I had to shift from unsigned to signed integers.
+ //  assert( R > static_cast<int64_t>(1));
+
+   int64_t ST, j, f, TSA_D = next_D, Ts = T, k = 1E3, TM = Ts*M, exk = k;
+   if (template_timestamp <= static_cast<int64_t>(previous_timestamp) ) {
+      template_timestamp = previous_timestamp + 1;
+   }
+   ST = std::min(template_timestamp - static_cast<int64_t>(previous_timestamp), 6*Ts);
+   for (i = 1; i <= ST/TM ; i++ ) { exk = (exk*static_cast<int64_t>(2.718*k))/k; }
+   f = ST % TM;
+   exk = (exk*(k+(f*(k+(f*(k+(f*k)/(3*TM)))/(2*TM)))/(TM)))/k;
+   TSA_D = std::max(static_cast<int64_t>(10),(TSA_D*((1000*(k*ST))/(k*Ts+(ST-Ts)*exk)))/1000);
+   // Make all insignificant digits zero for easy reading.
+   j = 1000000000;
+   while (j > 1) {
+      if ( TSA_D > j*100 ) { TSA_D = ((TSA_D+j/2)/j)*j; break; }
+      else { j /= 10; }
+   }
+   if (     M == 1) { TSA_D = (TSA_D*85)/100; }
+   else if (M == 2) { TSA_D = (TSA_D*95)/100; }
+   else if (M == 3) { TSA_D = (TSA_D*99)/100; }
+   logger(INFO,WHITE) << "InstantHR: " << static_cast<double>(TSA_D/T);
+   return static_cast<Difficulty>(TSA_D);
+}
+
+// LWMA difficulty algorithm Hard fork v4
 // Copyright (c) 2017-2018 Zawy
 // MIT license http://www.opensource.org/licenses/mit-license.php.
 // Tom Harding, Karbowanec, Masari, Bitcoin Gold, and Bitcoin Candy have contributed.
 // https://github.com/zawy12/difficulty-algorithms/issues/3
-
 // Zawy's LWMA difficulty algorithm implementation V4 (60 solvetimes limits -7T/7T)
 // (60 solvetimes - limits -7T/7T - adjust = 0.9909)
 Difficulty Currency::nextDifficultyV4(uint8_t &version,
@@ -723,6 +805,7 @@ Currency::Currency(Currency&& currency) :
     m_timestampCheckWindow(currency.m_timestampCheckWindow),
     m_timestampCheckWindowV4(currency.m_timestampCheckWindowV4),
     m_blockFutureTimeLimit(currency.m_blockFutureTimeLimit),
+    m_blockFutureTimeLimitV5(currency.m_blockFutureTimeLimitV5),
     m_moneySupply(currency.m_moneySupply),
     m_emissionSpeedFactor(currency.m_emissionSpeedFactor),
     m_rewardBlocksWindow(currency.m_rewardBlocksWindow),
@@ -733,7 +816,9 @@ Currency::Currency(Currency&& currency) :
     m_mininumFee(currency.m_mininumFee),
     m_defaultDustThreshold(currency.m_defaultDustThreshold),
     m_difficultyTarget(currency.m_difficultyTarget),
-    m_testnet_DifficultyTarget(currency.m_testnet_DifficultyTarget),
+    m_testnetDifficultyTarget(currency.m_testnetDifficultyTarget),
+    m_difficultyGuess(currency.m_difficultyGuess),
+    m_testnetDifficultyGuess(currency.m_testnetDifficultyGuess),
     m_difficultyWindow(currency.m_difficultyWindow),
     m_difficultyLag(currency.m_difficultyLag),
     m_difficultyCut(currency.m_difficultyCut),
@@ -780,6 +865,7 @@ CurrencyBuilder::CurrencyBuilder(Logging::ILogger& log) : m_currency(log) {
     timestampCheckWindow(parameters::BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW);
     timestampCheckWindowV4(parameters::BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW_V4);
     blockFutureTimeLimit(parameters::CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT);
+    blockFutureTimeLimitV5(parameters::CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT_V5);
 
     moneySupply(parameters::MONEY_SUPPLY);
     emissionSpeedFactor(parameters::EMISSION_SPEED_FACTOR);
@@ -800,6 +886,8 @@ CurrencyBuilder::CurrencyBuilder(Logging::ILogger& log) : m_currency(log) {
 
     difficultyTarget(parameters::DIFFICULTY_TARGET);
     testnetDifficultyTarget(parameters::TESTNET_DIFFICULTY_TARGET);
+    difficultyGuess(parameters::DIFFICULTY_GUESS);
+    testnetDifficultyGuess(parameters::TESTNET_DIFFICULTY_GUESS);
 
     difficultyWindow(parameters::DIFFICULTY_WINDOW);
     difficultyLag(parameters::DIFFICULTY_LAG);

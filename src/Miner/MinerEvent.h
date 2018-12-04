@@ -10,6 +10,7 @@ namespace Miner {
 enum class MinerEventType: uint8_t {
   BLOCK_MINED,
   BLOCKCHAIN_UPDATED,
+  TSA_UPDATE,
 };
 
 struct MinerEvent {

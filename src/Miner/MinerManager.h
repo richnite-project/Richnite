@@ -28,7 +28,6 @@ public:
   ~MinerManager();
 
   void start();
-
 private:
   System::Dispatcher& m_dispatcher;
   Logging::LoggerRef m_logger;
@@ -54,6 +53,8 @@ private:
 
   void startBlockchainMonitoring();
   void stopBlockchainMonitoring();
+
+  void updateTemplate();
 
   bool submitBlock(const CryptoNote::BlockTemplate& minedBlock, const std::string& daemonHost, uint16_t daemonPort);
   CryptoNote::BlockMiningParameters requestMiningParameters(System::Dispatcher& dispatcher, const std::string& daemonHost, uint16_t daemonPort, const std::string& miningAddress);

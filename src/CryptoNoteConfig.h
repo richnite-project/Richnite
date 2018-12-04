@@ -19,6 +19,7 @@ const size_t   CRYPTONOTE_MAX_TX_SIZE                        = 1000000000;
 const uint64_t CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX       = 0x16fa;
 const uint32_t CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW          = 20;
 const uint64_t CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT            = 525;
+const uint64_t CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT_V5         = 30;
 
 const size_t   BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW             = 60;
 const size_t   BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW_V4          = 11;
@@ -46,6 +47,7 @@ const uint64_t MINIMUM_FEE                                   = UINT64_C(5000);
 const uint64_t DEFAULT_DUST_THRESHOLD                        = UINT64_C(5000);
 
 const uint64_t DIFFICULTY_TARGET                             = 175;
+const uint64_t DIFFICULTY_GUESS                              = 5000000;
 const uint64_t EXPECTED_NUMBER_OF_BLOCKS_PER_DAY             = 24 * 60 * 60 / DIFFICULTY_TARGET;
 const size_t   DIFFICULTY_WINDOW                             = EXPECTED_NUMBER_OF_BLOCKS_PER_DAY;
 const size_t   DIFFICULTY_WINDOW_V2                          = 60;
@@ -94,9 +96,10 @@ const char     MINER_CONFIG_FILE_NAME[]                      = "miner_conf.json"
 // testnet setup
 const uint32_t TESTNET_UPGRADE_HEIGHT_V2                             = 2;
 const uint32_t TESTNET_UPGRADE_HEIGHT_V3                             = 5;
-const uint32_t TESTNET_UPGRADE_HEIGHT_V4                             = 8;
-const uint32_t TESTNET_UPGRADE_HEIGHT_V5                             = 10;
+const uint32_t TESTNET_UPGRADE_HEIGHT_V4                             = 10;
+const uint32_t TESTNET_UPGRADE_HEIGHT_V5                             = 70;
 const uint64_t TESTNET_DIFFICULTY_TARGET                             = 60; // target in testnet mode
+const uint64_t TESTNET_DIFFICULTY_GUESS                              = 3000;
 
 } // parameters
 

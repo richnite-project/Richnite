@@ -1513,7 +1513,7 @@ std::error_code Core::validateBlock(const CachedBlock& cachedBlock, IBlockchainC
     }
   }
 
-  if (block.timestamp > getAdjustedTime() + currency.blockFutureTimeLimit()) {
+  if (block.timestamp > getAdjustedTime() + (block.majorVersion >= BLOCK_MAJOR_VERSION_5 ? currency.blockFutureTimeLimitV5() : currency.blockFutureTimeLimit())) {
     return error::BlockValidationError::TIMESTAMP_TOO_FAR_IN_FUTURE;
   }
 
