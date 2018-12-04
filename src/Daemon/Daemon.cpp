@@ -161,7 +161,7 @@ int main(int argc, char* argv[])
 
     logger(INFO) << CryptoNote::CRYPTONOTE_NAME << " v" << PROJECT_VERSION_LONG;
 
-    if (command_line_preprocessor(vm, logger)) {
+    if (command_line_preprocessor(vm)) {
       return 0;
     }
 

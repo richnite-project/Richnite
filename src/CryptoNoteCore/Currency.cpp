@@ -632,6 +632,10 @@ Difficulty Currency::nextDifficultyV1(uint8_t &version,
 }
 
 bool Currency::checkProofOfWorkV1(const CachedBlock& block, Difficulty currentDifficulty) const {
+
+    // Iridium hack -- between blocks 6358 and 8500 difficulty checks were turned off (bug)
+//        if( ! isTestnet() && block.getBlockIndex() < 8500 ){ return true; }
+
     if (BLOCK_MAJOR_VERSION_1 != block.getBlock().majorVersion) {
         return false;
     }
@@ -680,7 +684,7 @@ bool Currency::checkProofOfWork(const CachedBlock& block, Difficulty currentDiff
     case BLOCK_MAJOR_VERSION_3:
     case BLOCK_MAJOR_VERSION_4:
     case BLOCK_MAJOR_VERSION_5:
-        return checkProofOfWorkV2(context, block, currentDiffic);
+        return checkProofOfWorkV2(block, currentDiffic);
     }
 
     logger(ERROR, BRIGHT_RED) << "Unknown block major version: " << block.getBlock().majorVersion << "." << block.getBlock().minorVersion;

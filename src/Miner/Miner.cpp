@@ -103,7 +103,8 @@ void Miner::workerFunc(const BlockTemplate& blockTemplate, Difficulty difficulty
         m_block = block;
         return;
       }
-
+      // update TS at every nonce
+      block.timestamp = static_cast<uint64_t>(time(nullptr));
       block.nonce += nonceStep;
     }
   } catch (std::exception& e) {
