@@ -75,6 +75,13 @@ target_link_libraries(SimpleWallet Wallet NodeRpcProxy Transfers Rpc P2P upnpc-s
 target_link_libraries(PaymentGateService PaymentGate JsonRpcServer Wallet NodeRpcProxy Transfers P2P CryptoNoteCore Crypto Rpc Http Serialization System Logging Common InProcessNode upnpc-static BlockchainExplorer rocksdb ${Boost_LIBRARIES})
 target_link_libraries(Miner CryptoNoteCore Rpc Serialization System Http Logging Common Crypto ${Boost_LIBRARIES})
 
+add_library(__filesystem INTERFACE)
+if (APPLE)
+    target_link_libraries(__filesystem INTERFACE /usr/local/opt/llvm/lib/libc++fs.a)
+elseif (UNIX)
+    target_link_libraries(__filesystem INTERFACE stdc++fs)
+endif()
+
 add_dependencies(Rpc version)
 
 add_dependencies(ConnectivityTool version)
