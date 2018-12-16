@@ -32,11 +32,11 @@ class BlockValidationErrorCategory : public std::error_category {
 public:
   static BlockValidationErrorCategory INSTANCE;
 
-  virtual const char* name() const throw() {
+  virtual const char* name() const noexcept {
     return "BlockValidationErrorCategory";
   }
 
-  virtual std::error_condition default_error_condition(int ev) const throw() {
+  virtual std::error_condition default_error_condition(int ev) const noexcept {
     return std::error_condition(ev, *this);
   }
 
