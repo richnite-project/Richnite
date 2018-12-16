@@ -30,7 +30,7 @@ enum State {
 
 class BlockchainExplorer : public IBlockchainExplorer, public INodeObserver {
 public:
-  BlockchainExplorer(INode& node, Logging::ILogger& logger/*, IDataBase& dataBase*/);
+  BlockchainExplorer(INode& node, Logging::ILogger& logger/*, IDataBase &database*/);
 
   BlockchainExplorer(const BlockchainExplorer&) = delete;
   BlockchainExplorer(BlockchainExplorer&&) = delete;
@@ -106,7 +106,7 @@ private:
 
   INode& node;
   Logging::LoggerRef logger;
-  IDataBase& database;
+//  IDataBase& database;
 
   AsyncContextCounter asyncContextCounter;
   PoolUpdateGuard poolUpdateGuard;
