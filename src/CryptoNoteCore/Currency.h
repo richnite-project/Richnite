@@ -120,7 +120,7 @@ public:
   Difficulty nextDifficultyV2(uint8_t &version, std::vector<uint64_t>& timestamps, std::vector<Difficulty>& cumulativeDifficulties) const;
   Difficulty nextDifficultyV3(uint8_t &version, std::vector<uint64_t>& timestamps, std::vector<Difficulty>& cumulativeDifficulties) const;
   Difficulty nextDifficultyV4(uint8_t &version, std::vector<uint64_t>& timestamps, std::vector<Difficulty>& cumulativeDifficulties) const;
-  Difficulty nextDifficultyV5(std::vector<uint64_t> timestamps, std::vector<uint64_t> cumulative_difficulties, uint64_t T, uint64_t N, uint64_t height, uint64_t FORK_HEIGHT, uint64_t difficulty_guess, int64_t template_timestamp, int64_t M) const;
+  Difficulty nextDifficultyV5(std::vector<uint64_t> &timestamps, std::vector<uint64_t> &cumulative_difficulties, const uint64_t &T, const uint64_t &N, const uint64_t &height, const uint64_t &FORK_HEIGHT, const uint64_t &difficulty_guess) const;
 
   bool checkProofOfWork(const CachedBlock& block, Difficulty currentDifficulty) const;
   bool checkProofOfWorkV1(const CachedBlock& block, Difficulty currentDifficulty) const;
@@ -168,6 +168,7 @@ private:
 
   uint64_t m_difficultyTarget;
   uint64_t m_difficultyGuess;
+  uint64_t m_difficultyGuess_V5;
   uint64_t m_testnetDifficultyTarget;
   uint64_t m_testnetDifficultyGuess;
 
@@ -262,8 +263,8 @@ public:
 
   CurrencyBuilder& difficultyTarget(uint64_t val) { m_currency.m_difficultyTarget = val; return *this; }
   CurrencyBuilder& testnetDifficultyTarget(uint64_t val) { m_currency.m_testnetDifficultyTarget = val; return *this; }
-
   CurrencyBuilder& difficultyGuess(uint64_t val) { m_currency.m_difficultyGuess = val; return *this; }
+  CurrencyBuilder& difficultyGuess_V5(uint64_t val) { m_currency.m_difficultyGuess_V5 = val; return *this; }
   CurrencyBuilder& testnetDifficultyGuess(uint64_t val) { m_currency.m_testnetDifficultyGuess = val; return *this; }
 
   CurrencyBuilder& difficultyWindow(size_t val);

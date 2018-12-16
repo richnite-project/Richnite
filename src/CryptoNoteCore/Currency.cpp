@@ -426,108 +426,136 @@ bool Currency::parseAmount(const std::string& str, uint64_t& amount) const {
     return Common::fromString(strAmount, amount);
 }
 
-Difficulty Currency::nextDifficulty(
-        uint8_t&  version,
-        uint32_t& blockIndex,
-        std::vector<uint64_t> timestamps,
-        std::vector<Difficulty> cumulativeDifficulties
-        ) const {
-    Difficulty nextDiff;
-    if (version >= BLOCK_MAJOR_VERSION_5) {
-        nextDiff = nextDifficultyV5(
-                    timestamps,
-                    cumulativeDifficulties,
-                    m_difficultyTarget,
-                    m_difficultyCut,
-                    blockIndex,
-                    m_upgradeHeightV5,
-                    m_difficultyGuess,
-                    static_cast<int64_t>(time(nullptr)),
-                    5
-                    );
-    } else if (version == BLOCK_MAJOR_VERSION_4) {
-        nextDiff = nextDifficultyV4(version,timestamps,cumulativeDifficulties);
-    } else if (version == BLOCK_MAJOR_VERSION_3) {
-        nextDiff = nextDifficultyV3(version,timestamps,cumulativeDifficulties);
-    } else if (version == BLOCK_MAJOR_VERSION_2) {
-        nextDiff =  nextDifficultyV2(version,timestamps,cumulativeDifficulties);
-    } else {
-        nextDiff = nextDifficultyV1(version,timestamps,cumulativeDifficulties);
-    }
-    if(nextDiff < 1) {
-        nextDiff = 1;
-    }
-    return nextDiff;
+Difficulty
+Currency::nextDifficulty(uint8_t &version, uint32_t &blockIndex,
+                         std::vector<uint64_t> timestamps,
+                         std::vector<Difficulty> cumulativeDifficulties) const {
+  Difficulty nextDiff;
+  if (version >= BLOCK_MAJOR_VERSION_5) {
+    nextDiff =
+        nextDifficultyV5(timestamps, cumulativeDifficulties, m_difficultyTarget,
+                         difficultyWindowByBlockVersion(version), blockIndex,
+                         m_upgradeHeightV5, m_difficultyGuess);
+  } else if (version == BLOCK_MAJOR_VERSION_4) {
+    nextDiff = nextDifficultyV4(version, timestamps, cumulativeDifficulties);
+  } else if (version == BLOCK_MAJOR_VERSION_3) {
+    nextDiff = nextDifficultyV3(version, timestamps, cumulativeDifficulties);
+  } else if (version == BLOCK_MAJOR_VERSION_2) {
+    nextDiff = nextDifficultyV2(version, timestamps, cumulativeDifficulties);
+  } else {
+    nextDiff = nextDifficultyV1(version, timestamps, cumulativeDifficulties);
+  }
+  if (nextDiff < 1) {
+    nextDiff = 1;
+  }
+  return nextDiff;
 }
 
+// LWMA-1 difficulty algorithm
+// Copyright (c) 2017-2018 Zawy, MIT License
+// https://github.com/zawy12/difficulty-algorithms/issues/3
+Difficulty
+Currency::nextDifficultyV5(std::vector<uint64_t> &timestamps,
+                           std::vector<uint64_t> &cumulative_difficulties,
+                           const uint64_t &T, const uint64_t &N,
+                           const uint64_t &height, const uint64_t &FORK_HEIGHT,
+                           const uint64_t &difficulty_guess) const {
 
-// TSA, Time Stamp Adjustment to Difficulty
-// Copyright (c) 2018 Zawy, MIT License.
-// See https://github.com/zawy12/difficulty-algorithms/issues/36
-// Changes difficulty in current block based on template's timestamp.
-// FTL must be lowered to 30 seconds. CN coins / pools must fix their universal timestamp problem.
-// CN coins must get pool software jobs & nodes issuing templates to update template timestamp
-// to current network time at least once every 10 seconds, not merely setting it to arrival time
-// of previous block. Miners outside of pools need to update it without asking for new template.
-Difficulty Currency::nextDifficultyV5(
-        std::vector<uint64_t> timestamps,
-        std::vector<uint64_t> cumulative_difficulties,
-        uint64_t T,
-        uint64_t N,
-        uint64_t height,
-        uint64_t FORK_HEIGHT,
-        uint64_t  difficulty_guess,
-        int64_t template_timestamp,
-        int64_t M ) const {
-    logger(INFO,BLUE) << "Height: " << height << " TsSize: " << timestamps.size() << " CumulDsize: " << cumulative_difficulties.size();
-    logger(INFO,BLUE) << "Target: " << T << " Upgrade: " << FORK_HEIGHT << " Guess: " << difficulty_guess;
-   uint64_t  L(0), next_D, i, this_timestamp(0), previous_timestamp(0), avg_D;
-   assert(timestamps.size() == cumulative_difficulties.size() && timestamps.size() <= N+1 );
-   // Hard code D if there are not at least N+1 BLOCKS after fork or genesis
-//   if (height >= FORK_HEIGHT && height <= FORK_HEIGHT + N+1) { return difficulty_guess; }
-   assert(timestamps.size() == N+1);
-   previous_timestamp = timestamps[0]-T;
-   for ( i = 1; i <= N; i++) {
-      // Safely prevent out-of-sequence timestamps
-      if ( timestamps[i]  >= previous_timestamp ) {   this_timestamp = timestamps[i];  }
-      else {  this_timestamp = previous_timestamp+1;   }
-      L +=  i*std::min(6*T ,this_timestamp - previous_timestamp);
-      logger(INFO,BLUE) << "i: " << i << " ST: " << this_timestamp - previous_timestamp;
-      previous_timestamp = this_timestamp;
-   }
-   logger(INFO,WHITE) << "avgST(" << N <<"): " << (timestamps.back() - timestamps.front())/ N;
-   avg_D = ( cumulative_difficulties[N] - cumulative_difficulties[0] )/ N;
-   logger(INFO,WHITE) << "avgHR(11): " << static_cast<double>((cumulative_difficulties[N] - cumulative_difficulties[N-11])/11/T);
-   logger(INFO,WHITE) << "avgHR(60): " << static_cast<double>(avg_D/T);
+  //    logger(INFO,BLUE) << "Height: " << height << " TsSize: " <<
+  //    timestamps.size() << " CumulDsize: " << cumulative_difficulties.size();
+  //    logger(INFO,BLUE) << "Window: " << N << " Target: " << T << " Upgrade: "
+  //    << FORK_HEIGHT << " Guess: " << difficulty_guess;
 
-   // Prevent round off error for small D and overflow for large D.
-   if (avg_D > 2000000*N*N*T) { next_D = (avg_D/(200*L))*(N*(N+1)*T*99);  }
-   else {    next_D = (avg_D*N*(N+1)*T*99)/(200*L);    }
+  assert(timestamps.size() == cumulative_difficulties.size() &&
+         timestamps.size() == N);
 
-// LWMA is finished, now use its next_D and previous_timestamp
-// to get TSA's next_D.  I had to shift from unsigned to signed integers.
- //  assert( R > static_cast<int64_t>(1));
+  // Hard code D if there are not at least N+1 BLOCKS after fork (or genesis)
+  if (height >= FORK_HEIGHT && height < (FORK_HEIGHT + N - 1)) {
+    return difficulty_guess;
+  }
+  assert(timestamps.size() == N);
 
-   int64_t ST, j, f, TSA_D = next_D, Ts = T, k = 1E3, TM = Ts*M, exk = k;
-   if (template_timestamp <= static_cast<int64_t>(previous_timestamp) ) {
-      template_timestamp = previous_timestamp + 1;
-   }
-   ST = std::min(template_timestamp - static_cast<int64_t>(previous_timestamp), 6*Ts);
-   for (i = 1; i <= ST/TM ; i++ ) { exk = (exk*static_cast<int64_t>(2.718*k))/k; }
-   f = ST % TM;
-   exk = (exk*(k+(f*(k+(f*(k+(f*k)/(3*TM)))/(2*TM)))/(TM)))/k;
-   TSA_D = std::max(static_cast<int64_t>(10),(TSA_D*((1000*(k*ST))/(k*Ts+(ST-Ts)*exk)))/1000);
-   // Make all insignificant digits zero for easy reading.
-   j = 1000000000;
-   while (j > 1) {
-      if ( TSA_D > j*100 ) { TSA_D = ((TSA_D+j/2)/j)*j; break; }
-      else { j /= 10; }
-   }
-   if (     M == 1) { TSA_D = (TSA_D*85)/100; }
-   else if (M == 2) { TSA_D = (TSA_D*95)/100; }
-   else if (M == 3) { TSA_D = (TSA_D*99)/100; }
-   logger(INFO,WHITE) << "InstantHR: " << static_cast<double>(TSA_D/T);
-   return static_cast<Difficulty>(TSA_D);
+  uint64_t L(0), next_D, i, this_timestamp(0), previous_timestamp(0), avg_D;
+  previous_timestamp = timestamps[0] - T + 1;
+
+  for (i = 1; i < N; i++) {
+    // Safely prevent out-of-sequence timestamps
+    if (timestamps[i] > previous_timestamp) {
+      this_timestamp = timestamps[i];
+    } else {
+      this_timestamp = previous_timestamp + 1;
+    }
+
+    logger(INFO, CYAN) << "st[" << i
+                       << "]: " << this_timestamp - previous_timestamp;
+
+    L += i * std::min(6 * T, this_timestamp - previous_timestamp);
+    previous_timestamp = this_timestamp;
+  }
+
+  if (L < 180 * T) { // 60*60/20
+    L = 180 * T;
+  }
+
+//  logger(INFO, GREEN)
+//      << "avgHR(11): "
+//      << static_cast<double>(
+//             (static_cast<double>(cumulative_difficulties.back()) -
+//              static_cast<double>(cumulative_difficulties[N - 12])) /
+//             T / 11)
+//      << " AvgHR(60): "
+//      << static_cast<double>(
+//             (static_cast<double>(cumulative_difficulties.back()) -
+//              static_cast<double>(cumulative_difficulties.front())) /
+//             T / 60);
+//  logger(INFO, BRIGHT_MAGENTA)
+//      << "avgST(11): "
+//      << static_cast<double>((static_cast<double>(timestamps.back()) -
+//                              static_cast<double>(timestamps[N - 12])) /
+//                             11)
+//      << " AvgST(60): "
+//      << static_cast<double>((static_cast<double>(timestamps.back()) -
+//                              static_cast<double>(timestamps.front())) /
+//                             60);
+
+  avg_D =
+      (cumulative_difficulties.back() - cumulative_difficulties.front()) / N;
+
+  // Prevent round off error for small D and overflow for large D.
+  if (avg_D > 7200000000 * T) { // 2000000*N*N = 7200000000 // (2000000*N*N*T)
+    next_D = (avg_D / (200 * L)) *
+             (362340 * T); // N*(N+1)*99 = 362340 // N*(N+1)*T*99
+  } else {
+    next_D = (avg_D * T * 362340) /
+             (200 * L); // N*(N+1)*99 = 362340 // (avg_D*N*(N+1)*T*99)
+  }
+
+  // Optional. Make all insignificant digits zero for easy reading.
+  i = 1000000000;
+  while (i > 1) {
+    if (next_D > i * 100) {
+      next_D = ((next_D + i / 2) / i) * i;
+      break;
+    } else {
+      i /= 10;
+    }
+  }
+
+  // Make least 2 digits = size of hash rate change last 11 BLOCKS if it's
+  // statistically significant. D=2540035 => hash rate 3.5x higher than D
+  // expected. Blocks coming 3.5x too fast.
+  if (next_D > 10000) { // should be 10000
+    uint64_t est_HR =
+        (10 * (11 * T + (timestamps[N] - timestamps[N - 11]) / 2)) /
+        (timestamps[N] - timestamps[N - 11] + 1);
+    if (est_HR > 5 && est_HR < 25) {
+      est_HR = 0;
+    }
+    est_HR = std::min(static_cast<uint64_t>(99), est_HR);
+    next_D = ((next_D + 50) / 100) * 100 + est_HR;
+  }
+
+  return next_D;
 }
 
 // LWMA difficulty algorithm Hard fork v4
@@ -714,14 +742,9 @@ Difficulty Currency::nextDifficultyV1(uint8_t &version,
 }
 
 bool Currency::checkProofOfWorkV1(const CachedBlock& block, Difficulty currentDifficulty) const {
-
-    // Iridium hack -- between blocks 6358 and 8500 difficulty checks were turned off (bug)
-//        if( ! isTestnet() && block.getBlockIndex() < 8500 ){ return true; }
-
     if (BLOCK_MAJOR_VERSION_1 != block.getBlock().majorVersion) {
         return false;
     }
-
     return check_hash(block.getBlockLongHash(), currentDifficulty);
 }
 
@@ -730,11 +753,9 @@ bool Currency::checkProofOfWorkV2(const CachedBlock& cachedBlock, Difficulty cur
     if (block.majorVersion < BLOCK_MAJOR_VERSION_2) {
         return false;
     }
-
     if (!check_hash(cachedBlock.getBlockLongHash(), currentDifficulty)) {
         return false;
     }
-
     TransactionExtraMergeMiningTag mmTag;
     if (!getMergeMiningTagFromExtra(block.parentBlock.baseTransaction.extra, mmTag)) {
         logger(ERROR) << "merge mining tag wasn't found in extra of the parent block miner transaction";
@@ -746,8 +767,7 @@ bool Currency::checkProofOfWorkV2(const CachedBlock& cachedBlock, Difficulty cur
     }
 
     Crypto::Hash auxBlocksMerkleRoot;
-    Crypto::tree_hash_from_branch(block.parentBlock.blockchainBranch.data(), block.parentBlock.blockchainBranch.size(),
-                                  cachedBlock.getAuxiliaryBlockHeaderHash(), &cachedGenesisBlock->getBlockHash(), auxBlocksMerkleRoot);
+    Crypto::tree_hash_from_branch(block.parentBlock.blockchainBranch.data(), block.parentBlock.blockchainBranch.size(),cachedBlock.getAuxiliaryBlockHeaderHash(), &cachedGenesisBlock->getBlockHash(), auxBlocksMerkleRoot);
 
     if (auxBlocksMerkleRoot != mmTag.merkleRoot) {
         logger(ERROR, BRIGHT_YELLOW) << "Aux block hash wasn't found in merkle tree";
@@ -761,7 +781,6 @@ bool Currency::checkProofOfWork(const CachedBlock& block, Difficulty currentDiff
     switch (block.getBlock().majorVersion) {
     case BLOCK_MAJOR_VERSION_1:
         return checkProofOfWorkV1(block, currentDiffic);
-
     case BLOCK_MAJOR_VERSION_2:
     case BLOCK_MAJOR_VERSION_3:
     case BLOCK_MAJOR_VERSION_4:
@@ -818,6 +837,7 @@ Currency::Currency(Currency&& currency) :
     m_difficultyTarget(currency.m_difficultyTarget),
     m_testnetDifficultyTarget(currency.m_testnetDifficultyTarget),
     m_difficultyGuess(currency.m_difficultyGuess),
+    m_difficultyGuess_V5(currency.m_difficultyGuess_V5),
     m_testnetDifficultyGuess(currency.m_testnetDifficultyGuess),
     m_difficultyWindow(currency.m_difficultyWindow),
     m_difficultyLag(currency.m_difficultyLag),
@@ -886,7 +906,8 @@ CurrencyBuilder::CurrencyBuilder(Logging::ILogger& log) : m_currency(log) {
 
     difficultyTarget(parameters::DIFFICULTY_TARGET);
     testnetDifficultyTarget(parameters::TESTNET_DIFFICULTY_TARGET);
-    difficultyGuess(parameters::DIFFICULTY_GUESS);
+    difficultyGuess(parameters::DIFFICULTY_GUESS_V5);
+    difficultyGuess_V5(parameters::DIFFICULTY_GUESS_V5);
     testnetDifficultyGuess(parameters::TESTNET_DIFFICULTY_GUESS);
 
     difficultyWindow(parameters::DIFFICULTY_WINDOW);
