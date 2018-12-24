@@ -40,27 +40,27 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 endif ()
 
 # Set compiler specific build flags
-if (CMAKE_COMPILER_IS_GNUC)
-  # Set our own default flags at first run.
-  if (NOT CONFIGURED)
+#if (CMAKE_COMPILER_IS_GNUC)
+#  # Set our own default flags at first run.
+#  if (NOT CONFIGURED)
 
-    if (NOT CMAKE_SYSTEM_NAME STREQUAL "AmigaOS")
-      set (_PIC -fPIC)
-    endif (CMAKE_SYSTEM_NAME STREQUAL "AmigaOS")
+#    if (NOT CMAKE_SYSTEM_NAME STREQUAL "AmigaOS")
+#      set (_PIC -fPIC)
+#    endif (CMAKE_SYSTEM_NAME STREQUAL "AmigaOS")
 
-    set (CMAKE_C_FLAGS "${_PIC} -Wall $ENV{CFLAGS}" # CMAKE_C_FLAGS gets appended to the other C flags
-        CACHE STRING "Flags used by the C compiler during normal builds." FORCE)
-    set (CMAKE_C_FLAGS_DEBUG "-g -DDDEBUG"
-        CACHE STRING "Flags used by the C compiler during debug builds." FORCE)
-    set (CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG"
-        CACHE STRING "Flags used by the C compiler during release builds." FORCE)
-    set (CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG"
-        CACHE STRING "Flags used by the C compiler during release builds." FORCE)
-    set (CMAKE_C_FLAGS_MINSIZEREL "-Os -DNDEBUG"
-        CACHE STRING "Flags used by the C compiler during release builds." FORCE)
+#    set (CMAKE_C_FLAGS "${_PIC} -Wall $ENV{CFLAGS}" # CMAKE_C_FLAGS gets appended to the other C flags
+#        CACHE STRING "Flags used by the C compiler during normal builds." FORCE)
+#    set (CMAKE_C_FLAGS_DEBUG "-g -DDDEBUG"
+#        CACHE STRING "Flags used by the C compiler during debug builds." FORCE)
+#    set (CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG"
+#        CACHE STRING "Flags used by the C compiler during release builds." FORCE)
+#    set (CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG"
+#        CACHE STRING "Flags used by the C compiler during release builds." FORCE)
+#    set (CMAKE_C_FLAGS_MINSIZEREL "-Os -DNDEBUG"
+#        CACHE STRING "Flags used by the C compiler during release builds." FORCE)
 
-  endif (NOT CONFIGURED)
-endif ()
+#  endif (NOT CONFIGURED)
+#endif ()
 
 configure_file (miniupnpcstrings.h.cmake ${CMAKE_BINARY_DIR}/miniupnpcstrings.h)
 include_directories (${CMAKE_BINARY_DIR})
