@@ -127,11 +127,11 @@ RpcServer::RpcServer(System::Dispatcher& dispatcher, Logging::ILogger& log, Core
 
 void RpcServer::processRequest(const HttpRequest& request, HttpResponse& response) {
   auto url = request.getUrl();
-  if (url.find(".bin") == std::string::npos) {
-      logger(TRACE) << "RPC request came: \n" << request << std::endl;
-  } else {
-      logger(TRACE) << "RPC request came: " << url << std::endl;
-  }
+//  if (url.find(".bin") == std::string::npos) {
+//      logger(TRACE) << "RPC request came: \n" << request << std::endl;
+//  } else {
+//      logger(TRACE) << "RPC request came: " << url << std::endl;
+//  }
 
   auto it = s_handlers.find(url);
   if (it == s_handlers.end()) {

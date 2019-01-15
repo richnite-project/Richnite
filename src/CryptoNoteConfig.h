@@ -47,7 +47,7 @@ const uint64_t MINIMUM_FEE                                   = UINT64_C(5000);
 const uint64_t DEFAULT_DUST_THRESHOLD                        = UINT64_C(5000);
 
 const uint64_t DIFFICULTY_TARGET                             = 175;
-const uint64_t DIFFICULTY_GUESS_V5                           = 5000000;
+const uint64_t DIFFICULTY_GUESS_V5                           = 17000000; // 100kH/S
 const uint64_t EXPECTED_NUMBER_OF_BLOCKS_PER_DAY             = 24 * 60 * 60 / DIFFICULTY_TARGET;
 const size_t   DIFFICULTY_WINDOW                             = EXPECTED_NUMBER_OF_BLOCKS_PER_DAY;
 const size_t   DIFFICULTY_WINDOW_V2                          = 60;

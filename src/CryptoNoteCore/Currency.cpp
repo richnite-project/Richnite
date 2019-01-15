@@ -486,8 +486,8 @@ Currency::nextDifficultyV5(std::vector<uint64_t> &timestamps,
       this_timestamp = previous_timestamp + 1;
     }
 
-    logger(INFO, CYAN) << "st[" << i
-                       << "]: " << this_timestamp - previous_timestamp;
+//    logger(INFO, CYAN) << "st[" << i
+//                       << "]: " << this_timestamp - previous_timestamp;
 
     L += i * std::min(6 * T, this_timestamp - previous_timestamp);
     previous_timestamp = this_timestamp;
