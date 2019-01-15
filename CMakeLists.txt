@@ -75,8 +75,8 @@ else()
   # Debug warnings
   set(DEBUG_WARNINGS "-Wpointer-arith -Wvla -Wwrite-strings")
 
-  # Release warnings //clang tested first
-  set(RELEASE_WARNINGS "-Wno-unused-parameter -Wno-unused-private-field -Wno-reorder -Wno-missing-field-initializers -Wno-unused-lambda-capture -Wno-unused-variable  -Wno-sign-compare -Wno-unused-function")
+  # Release warnings
+  set(RELEASE_WARNINGS "-Wno-unused-parameter -Wno-reorder -Wno-missing-field-initializers -Wno-unused-variable  -Wno-sign-compare -Wno-unused-function")
 
 #  # per compiler warnings
 #  if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
