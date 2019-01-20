@@ -1,5 +1,7 @@
 cmake_minimum_required (VERSION 2.6)
-
+if(POLICY CMP0048)
+  cmake_policy(SET CMP0048 NEW)
+endif()
 project (miniupnpc C)
 set (MINIUPNPC_VERSION 1.9)
 set (MINIUPNPC_API_VERSION 10)
@@ -161,7 +163,7 @@ install (TARGETS ${UPNPC_INSTALL_TARGETS}
   ARCHIVE DESTINATION lib${LIB_SUFFIX}
 )
 install (FILES
-	miniupnpc.h
+    miniupnpc.h
   miniwget.h
   upnpcommands.h
   igd_desc_parse.h

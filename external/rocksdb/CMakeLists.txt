@@ -32,11 +32,15 @@
 # 3. cmake ..
 # 4. make -j
 
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.8)
 project(rocksdb)
 enable_language(CXX)
 enable_language(C)
 enable_language(ASM)
+
+if(POLICY CMP0048)
+  cmake_policy(SET CMP0048 NEW)
+endif()
 
 if(POLICY CMP0042)
   cmake_policy(SET CMP0042 NEW)
