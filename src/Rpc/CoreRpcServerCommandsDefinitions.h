@@ -37,11 +37,12 @@ struct COMMAND_RPC_GET_HEIGHT {
   typedef EMPTY_STRUCT request;
 
   struct response {
-    uint64_t height;
+    uint32_t height,network_height;
     std::string status;
 
     void serialize(ISerializer &s) {
       KV_MEMBER(height)
+      KV_MEMBER(network_height)
       KV_MEMBER(status)
     }
   };
@@ -254,7 +255,7 @@ struct COMMAND_RPC_GET_INFO {
   struct response {
     std::string status;
     std::string version;
-    uint64_t height;
+    uint32_t height;
     uint64_t difficulty;
     uint64_t tx_count;
     uint64_t tx_pool_size;
@@ -264,6 +265,7 @@ struct COMMAND_RPC_GET_INFO {
     uint64_t white_peerlist_size;
     uint64_t grey_peerlist_size;
     uint32_t last_known_block_index;
+    bool synced;
 
     void serialize(ISerializer &s) {
       KV_MEMBER(status)

@@ -86,6 +86,7 @@ RpcServer::HandlerFunction jsonMethod(bool (RpcServer::*handler)(typename Comman
     }
 
     bool result = (obj->*handler)(req, res);
+    response.addHeader("Content-Type", "application/json");
     response.setBody(storeToJson(res.data()));
     return result;
   };
@@ -93,9 +94,9 @@ RpcServer::HandlerFunction jsonMethod(bool (RpcServer::*handler)(typename Comman
 
 
 }
-  
+
 std::unordered_map<std::string, RpcServer::RpcHandler<RpcServer::HandlerFunction>> RpcServer::s_handlers = {
-  
+
   // binary handlers
   { "/getblocks.bin", { binMethod<COMMAND_RPC_GET_BLOCKS_FAST>(&RpcServer::on_get_blocks), false } },
   { "/queryblocks.bin", { binMethod<COMMAND_RPC_QUERY_BLOCKS>(&RpcServer::on_query_blocks), false } },
@@ -424,14 +425,17 @@ bool RpcServer::on_get_info(const COMMAND_RPC_GET_INFO::request& req, COMMAND_RP
   res.incoming_connections_count = total_conn - res.outgoing_connections_count;
   res.white_peerlist_size = m_p2p.getPeerlistManager().get_white_peers_count();
   res.grey_peerlist_size = m_p2p.getPeerlistManager().get_gray_peers_count();
+  res.last_known_block_index = std::max(static_cast<uint>(1), m_protocol.getObservedHeight() - 1 );
   res.last_known_block_index = std::max(static_cast<uint32_t>(1), m_protocol.getObservedHeight());
   res.status = CORE_RPC_STATUS_OK;
   res.version = PROJECT_VERSION_LONG;
+  res.synced = (res.height == m_protocol.getObservedHeight());
   return true;
 }
 
 bool RpcServer::on_get_height(const COMMAND_RPC_GET_HEIGHT::request& req, COMMAND_RPC_GET_HEIGHT::response& res) {
   res.height = m_core.getTopBlockIndex() + 1;
+  res.network_height = m_protocol.getObservedHeight();
   res.status = CORE_RPC_STATUS_OK;
   return true;
 }

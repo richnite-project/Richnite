@@ -14,7 +14,7 @@ LoggerMessage::LoggerMessage(ILogger& logger, const std::string& category, Level
   , category(category)
   , logLevel(level)
   , message(color)
-  , timestamp(boost::posix_time::microsec_clock::local_time())
+  , timestamp(boost::posix_time::second_clock::local_time())
   , gotText(false) {
 }
 
@@ -32,7 +32,7 @@ LoggerMessage::LoggerMessage(LoggerMessage&& other)
   , logLevel(other.logLevel)
   , logger(other.logger)
   , message(other.message)
-  , timestamp(boost::posix_time::microsec_clock::local_time())
+  , timestamp(boost::posix_time::second_clock::local_time())
   , gotText(false) {
   this->set_rdbuf(this);
 }
@@ -44,7 +44,7 @@ LoggerMessage::LoggerMessage(LoggerMessage&& other)
   , logLevel(other.logLevel)
   , logger(other.logger)
   , message(other.message)
-  , timestamp(boost::posix_time::microsec_clock::local_time())
+  , timestamp(boost::posix_time::second_clock::local_time())
   , gotText(false) {
   if (this != &other) {
     _M_tie = nullptr;
