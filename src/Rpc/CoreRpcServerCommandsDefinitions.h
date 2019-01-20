@@ -280,6 +280,7 @@ struct COMMAND_RPC_GET_INFO {
       KV_MEMBER(white_peerlist_size)
       KV_MEMBER(grey_peerlist_size)
       KV_MEMBER(last_known_block_index)
+      KV_MEMBER(synced)
     }
   };
 };
