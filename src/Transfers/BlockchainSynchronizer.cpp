@@ -533,6 +533,7 @@ void BlockchainSynchronizer::processBlocks(GetBlocksResponse& response) {
       } else {
         break;
       }
+      break;
 
     case UpdateConsumersResult::addedNewBlocks:
       setFutureState(State::blockchainSync);

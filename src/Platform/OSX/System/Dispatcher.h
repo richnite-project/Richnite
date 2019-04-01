@@ -86,8 +86,8 @@ private:
   NativeContext* firstReusableContext;
   size_t runningContextCount;
 
-  void contextProcedure(void* uctx);
-  static void contextProcedureStatic(intptr_t context);
+  [[ noreturn ]] void contextProcedure(void* uctx);
+  [[ noreturn ]] static void contextProcedureStatic(intptr_t context);
 };
 
 }

@@ -155,7 +155,7 @@ void Dispatcher::dispatch() {
     }
 
     struct kevent event;
-    int count = kevent(kqueue, NULL, 0, &event, 1, NULL);
+    int count = kevent(kqueue, nullptr, 0, &event, 1, nullptr);
     if (count == 1) {
       if (event.flags & EV_ERROR) {
         continue;
@@ -164,7 +164,7 @@ void Dispatcher::dispatch() {
       if (event.filter == EVFILT_USER && event.ident == 0) {
         struct kevent event;
         EV_SET(&event, 0, EVFILT_USER, EV_ADD | EV_DISABLE, NOTE_FFNOP, 0, NULL);
-        if (kevent(kqueue, &event, 1, NULL, 0, NULL) == -1) {
+        if (kevent(kqueue, &event, 1, nullptr, 0, nullptr) == -1) {
           throw std::runtime_error("Dispatcher::dispatch, kevent failed, " + lastErrorMessage());
         }
 
@@ -173,7 +173,7 @@ void Dispatcher::dispatch() {
 
       if (event.filter == EVFILT_WRITE) {
         event.flags = EV_DELETE | EV_DISABLE;
-        kevent(kqueue, &event, 1, NULL, 0, NULL); // ignore error here
+        kevent(kqueue, &event, 1, nullptr, 0, nullptr); // ignore error here
       }
 
       context = static_cast<OperationContext*>(event.udata)->context;
@@ -255,7 +255,7 @@ void Dispatcher::remoteSpawn(std::function<void()>&& procedure) {
     remoteSpawned = true;
     struct kevent event;
     EV_SET(&event, 0, EVFILT_USER, EV_ADD | EV_ENABLE, NOTE_FFCOPY | NOTE_TRIGGER, 0, NULL);
-    if (kevent(kqueue, &event, 1, NULL, 0, NULL) == -1) {
+    if (kevent(kqueue, &event, 1, nullptr, 0, nullptr) == -1) {
       throw std::runtime_error("Dispatcher::remoteSpawn, kevent failed, " + lastErrorMessage());
     };
   }
@@ -382,7 +382,7 @@ void Dispatcher::pushTimer(int timer) {
   timers.push(timer);
 }
 
-void Dispatcher::contextProcedure(void* ucontext) {
+[[ noreturn ]] void Dispatcher::contextProcedure(void* ucontext) {
   assert(firstReusableContext == nullptr);
   NativeContext context;
   context.uctx = ucontext;
@@ -442,7 +442,7 @@ void Dispatcher::contextProcedure(void* ucontext) {
   }
 }
 
-void Dispatcher::contextProcedureStatic(intptr_t context) {
+[[ noreturn ]] void Dispatcher::contextProcedureStatic(intptr_t context) {
   ContextMakingData* makingContextData = reinterpret_cast<ContextMakingData*>(context);
   makingContextData->dispatcher->contextProcedure(makingContextData->uctx);
 }
