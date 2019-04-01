@@ -1,6 +1,6 @@
 # iridium cryptocurrency (IRD)
 
-![iridium logo](https://avatars1.githubusercontent.com/u/31619794?s=460&v=4)
+![iridium logo](https://ird.cash/wp-content/uploads/2019/01/iridium.svg)
 
 Iridium is a cryptonight based cryptocurrency (ticker : IRD)
 
@@ -17,9 +17,16 @@ This is the iridium core source code and binary release.
 
 Libraries needed : boost >=1.58
 
-How to compile this : 
+**development branch is now the default behavior, with blood and tears.**
+
+If you want to compile the latest stable release, currently in production, clone the master branch :
 ```
-$ git clone https://github.com/iridiumdev/iridium.git
+git clone -b master https://github.com/iridiumdev/iridium.git
+```
+
+Compilation informations : 
+```
+$ git clone -b master https://github.com/iridiumdev/iridium.git
 $ cd iridium
 $ mkdir iridium-build
 $ cd iridium-build
