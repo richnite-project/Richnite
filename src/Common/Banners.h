@@ -48,7 +48,7 @@ const std::string bannerText =
 
 #ifdef _WIN32
 //windows has non ansi chars ?
-+const std::string banner = windowsBanner;
+const std::string banner = windowsBanner;
 #else
 const std::string banner = othersBanner;
 #endif
