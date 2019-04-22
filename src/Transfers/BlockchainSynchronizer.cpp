@@ -6,8 +6,6 @@
 #include "BlockchainSynchronizer.h"
 
 #include <functional>
-#include <iostream>
-#include <sstream>
 #include <unordered_set>
 
 #include "Common/StreamTools.h"
@@ -644,7 +642,7 @@ void BlockchainSynchronizer::removeOutdatedTransactions() {
   }
 
   if (!ec) {
-    m_logger(INFO, BRIGHT_WHITE) << "Outdated pool transactions processed";
+    m_logger(INFO, BRIGHT_WHITE) << "Removing outdated pool transactions done.";
   } else {
     m_observerManager.notify(&IBlockchainSynchronizerObserver::synchronizationCompleted, ec);
 

@@ -52,13 +52,13 @@ std::error_code interpretResponseStatus(const std::string& status) {
 
 NodeRpcProxy::NodeRpcProxy(const std::string& nodeHost, unsigned short nodePort, Logging::ILogger& logger) :
     m_logger(logger, "NodeRpcProxy"),
-    m_rpcTimeout(10000),
-    m_pullInterval(5000),
     m_nodeHost(nodeHost),
     m_nodePort(nodePort),
-    m_connected(true),
+    m_rpcTimeout(10000),
+    m_pullInterval(5000),
     m_peerCount(0),
-    m_networkHeight(0)
+    m_networkHeight(0),
+    m_connected(true)
     {
   resetInternalState();
 }
@@ -441,6 +441,10 @@ void NodeRpcProxy::getPoolSymmetricDifference(std::vector<Crypto::Hash>&& knownP
     return;
   }
 
+  if(knownBlockId == nullHash) {
+        knownBlockId = m_lastHash;
+  }
+
   scheduleRequest([this, knownPoolTxIds, knownBlockId, &isBcActual, &newTxs, &deletedTxIds] () mutable -> std::error_code {
     return this->doGetPoolSymmetricDifference(std::move(knownPoolTxIds), knownBlockId, isBcActual, newTxs, deletedTxIds); } , callback);
 }
@@ -516,7 +520,7 @@ std::error_code NodeRpcProxy::doGetRandomOutsByAmounts(std::vector<uint64_t>& am
   m_logger(TRACE) << "Send getrandom_outs.bin request";
   std::error_code ec = binaryCommand("/getrandom_outs.bin", req, rsp);
   if (!ec) {
-    m_logger(TRACE) << "getrandom_outs.bin compete";
+    m_logger(TRACE) << "getrandom_outs.bin complete";
     outs = std::move(rsp.outs);
   } else {
     m_logger(TRACE) << "getrandom_outs.bin failed: " << ec << ", " << ec.message();
@@ -542,7 +546,7 @@ std::error_code NodeRpcProxy::doGetNewBlocks(std::vector<Crypto::Hash>& knownBlo
   m_logger(TRACE) << "Send getblocks.bin request";
   std::error_code ec = binaryCommand("/getblocks.bin", req, rsp);
   if (!ec) {
-    m_logger(TRACE) << "getblocks.bin compete, start_height " << rsp.start_height << ", block count " << rsp.blocks.size();
+    m_logger(TRACE) << "getblocks.bin complete, start_height " << rsp.start_height << ", block count " << rsp.blocks.size();
     newBlocks = std::move(rsp.blocks);
     startHeight = static_cast<uint32_t>(rsp.start_height);
   } else {
@@ -561,7 +565,7 @@ std::error_code NodeRpcProxy::doGetTransactionOutsGlobalIndices(const Crypto::Ha
   m_logger(TRACE) << "Send get_o_indexes.bin request, transaction " << req.txid;
   std::error_code ec = binaryCommand("/get_o_indexes.bin", req, rsp);
   if (!ec) {
-    m_logger(TRACE) << "get_o_indexes.bin compete";
+    m_logger(TRACE) << "get_o_indexes.bin complete";
     outsGlobalIndices.clear();
     for (auto idx : rsp.o_indexes) {
       outsGlobalIndices.push_back(static_cast<uint32_t>(idx));
@@ -588,7 +592,7 @@ std::error_code NodeRpcProxy::doQueryBlocksLite(const std::vector<Crypto::Hash>&
     return ec;
   }
 
-  m_logger(TRACE) << "queryblockslite.bin compete, startHeight " << rsp.startHeight << ", block count " << rsp.items.size();
+  m_logger(TRACE) << "queryblockslite.bin complete, startHeight " << rsp.startHeight << ", block count " << rsp.items.size();
   startHeight = static_cast<uint32_t>(rsp.startHeight);
 
   for (auto& item: rsp.items) {
@@ -625,6 +629,10 @@ std::error_code NodeRpcProxy::doGetPoolSymmetricDifference(std::vector<Crypto::H
   req.tailBlockId = knownBlockId;
   req.knownTxsIds = knownPoolTxIds;
 
+  if(m_lastHash == nullHash) {
+        m_lastHash = knownBlockId;
+  }
+
   m_logger(TRACE) << "Send get_pool_changes_lite.bin request, tailBlockId " << req.tailBlockId;
   std::error_code ec = binaryCommand("/get_pool_changes_lite.bin", req, rsp);
 
@@ -633,7 +641,7 @@ std::error_code NodeRpcProxy::doGetPoolSymmetricDifference(std::vector<Crypto::H
     return ec;
   }
 
-  m_logger(TRACE) << "get_pool_changes_lite.bin compete, isTailBlockActual " << rsp.isTailBlockActual;
+  m_logger(TRACE) << "get_pool_changes_lite.bin complete, isTailBlockActual " << rsp.isTailBlockActual;
   isBcActual = rsp.isTailBlockActual;
 
   deletedTxIds = std::move(rsp.deletedTxsIds);
@@ -762,7 +770,7 @@ std::error_code NodeRpcProxy::jsonCommand(const std::string& url, const Request&
   if (ec) {
     m_logger(TRACE) << url << " JSON request failed: " << ec << ", " << ec.message();
   } else {
-    m_logger(TRACE) << url << " JSON request compete";
+    m_logger(TRACE) << url << " JSON request complete";
   }
 
   return ec;
@@ -807,7 +815,7 @@ std::error_code NodeRpcProxy::jsonRpcCommand(const std::string& method, const Re
   if (ec) {
     m_logger(TRACE) << method << " JSON RPC request failed: " << ec << ", " << ec.message();
   } else {
-    m_logger(TRACE) << method << " JSON RPC request compete";
+    m_logger(TRACE) << method << " JSON RPC request complete";
   }
 
   return ec;

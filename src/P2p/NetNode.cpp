@@ -1118,7 +1118,7 @@ std::string print_peerlist_to_string(const std::list<PeerlistEntry>& pl) {
     }
 
     //fill response
-    rsp.local_time = time(NULL);
+    rsp.local_time = time(nullptr);
     m_peerlist.get_peerlist_head(rsp.local_peerlist);
     m_payload_handler.get_payload_sync_data(rsp.payload_data);
     logger(Logging::TRACE) << context << "COMMAND_TIMED_SYNC";
@@ -1326,7 +1326,7 @@ std::string print_peerlist_to_string(const std::list<PeerlistEntry>& pl) {
         for (auto& kv : m_connections) {
           auto& ctx = kv.second;
           if (ctx.writeDuration(now) > P2P_DEFAULT_INVOKE_TIMEOUT) {
-            logger(WARNING) << ctx << "write operation timed out, stopping connection";
+            logger(DEBUGGING) << ctx << "write operation timed out, stopping connection";
             safeInterrupt(ctx);
           }
         }

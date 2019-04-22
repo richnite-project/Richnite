@@ -128,11 +128,12 @@ RpcServer::RpcServer(System::Dispatcher& dispatcher, Logging::ILogger& log, Core
 
 void RpcServer::processRequest(const HttpRequest& request, HttpResponse& response) {
   auto url = request.getUrl();
-//  if (url.find(".bin") == std::string::npos) {
-//      logger(TRACE) << "RPC request came: \n" << request << std::endl;
-//  } else {
-//      logger(TRACE) << "RPC request came: " << url << std::endl;
-//  }
+
+  if (url.find(".bin") == std::string::npos) {
+      logger(TRACE) << "RPC request came: \n" << request << std::endl;
+  } else {
+      logger(TRACE) << "RPC request came: " << url << std::endl;
+  }
 
   auto it = s_handlers.find(url);
   if (it == s_handlers.end()) {
@@ -425,7 +426,7 @@ bool RpcServer::on_get_info(const COMMAND_RPC_GET_INFO::request& req, COMMAND_RP
   res.incoming_connections_count = total_conn - res.outgoing_connections_count;
   res.white_peerlist_size = m_p2p.getPeerlistManager().get_white_peers_count();
   res.grey_peerlist_size = m_p2p.getPeerlistManager().get_gray_peers_count();
-  res.last_known_block_index = std::max(static_cast<uint32_t>(1), m_protocol.getObservedHeight() - 1 );
+  res.last_known_block_index = std::max(static_cast<uint32_t>(1), m_protocol.getObservedHeight()) - 1;
   res.status = CORE_RPC_STATUS_OK;
   res.version = PROJECT_VERSION_LONG;
   res.synced = (res.height == m_protocol.getObservedHeight());

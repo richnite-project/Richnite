@@ -456,13 +456,13 @@ bool simple_wallet::exit(const std::vector<std::string> &args) {
 }
 
 simple_wallet::simple_wallet(System::Dispatcher& dispatcher, const CryptoNote::Currency& currency, Logging::LoggerManager& log) :
-  m_dispatcher(dispatcher),
-  m_daemon_port(0), 
-  m_currency(currency), 
+  m_daemon_port(0),
+  m_initResultPromise(nullptr),
+  m_currency(currency),
   logManager(log),
+  m_dispatcher(dispatcher),
   logger(log, "simplewallet"),
   m_refresh_progress_reporter(*this), 
-  m_initResultPromise(nullptr),
   m_walletSynchronized(false) {
   //m_consoleHandler.setHandler("start_mining", boost::bind(&simple_wallet::start_mining, this, _1), "start_mining [<number_of_threads>] - Start mining in daemon");
   //m_consoleHandler.setHandler("stop_mining", boost::bind(&simple_wallet::stop_mining, this, _1), "Stop mining in daemon");
@@ -532,7 +532,7 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm) {
       return false;
     }
 
-    std::cout << "Specify wallet file name (e.g., wallet.bin).\n";
+    std::cout << "Specify wallet file name (e.g., mywallet.wallet).\n";
     std::string userInput;
     do {
       std::cout << "Wallet file name: ";
