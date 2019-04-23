@@ -531,8 +531,8 @@ void BlockchainSynchronizer::processBlocks(GetBlocksResponse& response) {
       } else {
         break;
       }
-      break;
 
+    BOOST_FALLTHROUGH;
     case UpdateConsumersResult::addedNewBlocks:
       setFutureState(State::blockchainSync);
       m_observerManager.notify(
