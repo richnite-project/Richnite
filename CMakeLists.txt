@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(iridium VERSION 4.0.3)
+project(iridium VERSION 4.1.0)
 
 #----------------#
 # Global options #
@@ -207,7 +207,6 @@ message(STATUS "----------------------------------------------------------")
 
 message(STATUS "C Flags ${CMAKE_C_FLAGS_RELEASE}")
 message(STATUS "CXX Flags ${CMAKE_CXX_FLAGS_RELEASE}")
-message(STATUS "CXX Warn")
 
 #----------#
 # sources  #
