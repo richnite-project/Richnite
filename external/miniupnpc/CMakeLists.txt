@@ -1,5 +1,7 @@
 cmake_minimum_required (VERSION 2.6)
-
+if(POLICY CMP0048)
+  cmake_policy(SET CMP0048 NEW)
+endif()
 project (miniupnpc C)
 set (MINIUPNPC_VERSION 1.9)
 set (MINIUPNPC_API_VERSION 10)
@@ -40,27 +42,27 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 endif ()
 
 # Set compiler specific build flags
-if (CMAKE_COMPILER_IS_GNUC)
-  # Set our own default flags at first run.
-  if (NOT CONFIGURED)
+#if (CMAKE_COMPILER_IS_GNUC)
+#  # Set our own default flags at first run.
+#  if (NOT CONFIGURED)
 
-    if (NOT CMAKE_SYSTEM_NAME STREQUAL "AmigaOS")
-      set (_PIC -fPIC)
-    endif (CMAKE_SYSTEM_NAME STREQUAL "AmigaOS")
+#    if (NOT CMAKE_SYSTEM_NAME STREQUAL "AmigaOS")
+#      set (_PIC -fPIC)
+#    endif (CMAKE_SYSTEM_NAME STREQUAL "AmigaOS")
 
-    set (CMAKE_C_FLAGS "${_PIC} -Wall $ENV{CFLAGS}" # CMAKE_C_FLAGS gets appended to the other C flags
-        CACHE STRING "Flags used by the C compiler during normal builds." FORCE)
-    set (CMAKE_C_FLAGS_DEBUG "-g -DDDEBUG"
-        CACHE STRING "Flags used by the C compiler during debug builds." FORCE)
-    set (CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG"
-        CACHE STRING "Flags used by the C compiler during release builds." FORCE)
-    set (CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG"
-        CACHE STRING "Flags used by the C compiler during release builds." FORCE)
-    set (CMAKE_C_FLAGS_MINSIZEREL "-Os -DNDEBUG"
-        CACHE STRING "Flags used by the C compiler during release builds." FORCE)
+#    set (CMAKE_C_FLAGS "${_PIC} -Wall $ENV{CFLAGS}" # CMAKE_C_FLAGS gets appended to the other C flags
+#        CACHE STRING "Flags used by the C compiler during normal builds." FORCE)
+#    set (CMAKE_C_FLAGS_DEBUG "-g -DDDEBUG"
+#        CACHE STRING "Flags used by the C compiler during debug builds." FORCE)
+#    set (CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG"
+#        CACHE STRING "Flags used by the C compiler during release builds." FORCE)
+#    set (CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG"
+#        CACHE STRING "Flags used by the C compiler during release builds." FORCE)
+#    set (CMAKE_C_FLAGS_MINSIZEREL "-Os -DNDEBUG"
+#        CACHE STRING "Flags used by the C compiler during release builds." FORCE)
 
-  endif (NOT CONFIGURED)
-endif ()
+#  endif (NOT CONFIGURED)
+#endif ()
 
 configure_file (miniupnpcstrings.h.cmake ${CMAKE_BINARY_DIR}/miniupnpcstrings.h)
 include_directories (${CMAKE_BINARY_DIR})
@@ -161,7 +163,7 @@ install (TARGETS ${UPNPC_INSTALL_TARGETS}
   ARCHIVE DESTINATION lib${LIB_SUFFIX}
 )
 install (FILES
-	miniupnpc.h
+    miniupnpc.h
   miniwget.h
   upnpcommands.h
   igd_desc_parse.h

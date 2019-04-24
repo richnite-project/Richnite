@@ -1,19 +1,11 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
-//
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
+// Copyright (c) 2017-2019, The Iridium developers
 // You should have received a copy of the GNU Lesser General Public License
 // along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// Copyright (c) 2018, The BBSCoin Developers
+// Copyright (c) 2018, The Karbo Developers
+// Copyright (c) 2018, The TurtleCoin Developers
+// Copyright (c) 2018, The Iridium Developer
 
 #include "WalletGreen.h"
 
@@ -322,10 +314,9 @@ void WalletGreen::initWithKeys(const std::string& path, const std::string& passw
   prefix->version = static_cast<uint8_t>(WalletSerializerV2::SERIALIZATION_VERSION);
   prefix->nextIv = Crypto::rand<Crypto::chacha8_iv>();
 
-  Crypto::cn_context cnContext;
-  Crypto::generate_chacha8_key(cnContext, password, m_key);
+  Crypto::generate_chacha8_key(password, m_key);
 
-  uint64_t creationTimestamp = time(nullptr);
+  uint64_t creationTimestamp = static_cast<uint64_t>(time(nullptr));
   prefix->encryptedViewKeys = encryptKeyPair(viewPublicKey, viewSecretKey, creationTimestamp, m_key, prefix->nextIv);
 
   newStorage.flush();
@@ -391,8 +382,7 @@ void WalletGreen::exportWallet(const std::string& path, bool encrypt, WalletSave
     if (encrypt) {
       newStorageKey = m_key;
     } else {
-      cn_context cnContext;
-      generate_chacha8_key(cnContext, "", newStorageKey);
+      generate_chacha8_key("", newStorageKey);
     }
 
     copyContainerStoragePrefix(m_containerStorage, m_key, newStorage, newStorageKey);
@@ -412,58 +402,6 @@ void WalletGreen::exportWallet(const std::string& path, bool encrypt, WalletSave
   m_logger(INFO, BRIGHT_WHITE) << "Container exported";
 }
 
-void WalletGreen::resetPendingTransactions() {
-
-	m_logger(INFO, BRIGHT_WHITE) << "Clearing transaction data";
-
-	System::EventLock lk(m_readyEvent);
-
-	try 
-	{
-		//purge from wallet
-		throwIfNotInitialized();
-		throwIfStopped();
-		throwIfTrackingMode();
-
-		auto txns = getUnconfirmedTransactions();
-
-		m_logger(INFO, BRIGHT_WHITE) << "Purging " << txns.size() << " transactions...";
-
-		for (auto thisTrans : txns) {
-
-			// WalletTransaction transaction
-			m_logger(INFO, BRIGHT_WHITE) << "Found unconfirmed TXN " << thisTrans.transaction.hash << " " << thisTrans.transaction.state << " block height " <<
-				thisTrans.transaction.blockHeight;
-
-			//TODO purge from pool?
-
-			//updateTransactionStateAndPushEvent(i, WalletTransactionState::DELETED);
-			try {
-				
-				Tools::ScopeExit releaseContext([this, &thisTrans] {
-					m_dispatcher.yield();					
-				});
-
-				removeUnconfirmedTransaction(thisTrans.transaction.hash);
-			}
-			catch (...) {
-				m_logger(ERROR, BRIGHT_RED) << "eRROR purging txn " << thisTrans.transaction.hash;
-			}
-
-			m_logger(INFO, BRIGHT_WHITE) << "Finished purging txn";
-		}		
-	}
-	catch (const std::exception& e) {
-		m_logger(ERROR, BRIGHT_RED) << "Failed to remove unconfirmed txn: " << e.what();
-	}
-	
-	/*
-	stopBlockchainSynchronizer();
-	clearCaches(false, true);
-	subscribeWallets();
-	*/
-}
-
 void WalletGreen::load(const std::string& path, const std::string& password, std::string& extra) {
   m_logger(INFO, BRIGHT_WHITE) << "Loading container...";
 
@@ -476,8 +414,7 @@ void WalletGreen::load(const std::string& path, const std::string& password, std
 
   stopBlockchainSynchronizer();
 
-  Crypto::cn_context cnContext;
-  generate_chacha8_key(cnContext, password, m_key);
+  generate_chacha8_key(password, m_key);
 
   std::ifstream walletFileStream(path, std::ios_base::binary);
   int version = walletFileStream.peek();
@@ -525,6 +462,28 @@ void WalletGreen::load(const std::string& path, const std::string& password, std
         subscribeWallets();
       }
     }
+  }
+
+  // Read all output keys cache
+  try {
+      std::vector<AccountPublicAddress> subscriptionList;
+      m_synchronizer.getSubscriptions(subscriptionList);
+      for (auto& addr : subscriptionList) {
+          auto sub = m_synchronizer.getSubscription(addr);
+          if (sub != nullptr) {
+              std::vector<TransactionOutputInformation> allTransfers;
+              ITransfersContainer* container = &sub->getContainer();
+              container->getOutputs(allTransfers, ITransfersContainer::IncludeAll);
+              m_logger(INFO, BRIGHT_WHITE) << "Known Transfers " << allTransfers.size();
+              for (auto& o : allTransfers) {
+                  if (o.type == TransactionTypes::OutputType::Key) {
+                      m_synchronizer.addPublicKeysSeen(addr, o.transactionHash, o.outputKey);
+                  }
+              }
+          }
+      }
+  } catch (const std::exception& e) {
+      m_logger(ERROR, BRIGHT_RED) << "Failed to read output keys!! Continue without output keys: " << e.what();
   }
 
   m_blockchainSynchronizer.addObserver(this);
@@ -767,12 +726,12 @@ void WalletGreen::deleteOrphanTransactions(const std::unordered_set<Crypto::Publ
 }
 
 void WalletGreen::loadSpendKeys() {
-  bool isTrackingMode;
+  bool isTrackingMode = false;
   for (size_t i = 0; i < m_containerStorage.size(); ++i) {
     WalletRecord wallet;
     uint64_t creationTimestamp;
     decryptKeyPair(m_containerStorage[i], wallet.spendPublicKey, wallet.spendSecretKey, creationTimestamp);
-    wallet.creationTimestamp = creationTimestamp;
+    wallet.creationTimestamp = static_cast<time_t>(creationTimestamp);
 
     if (i == 0) {
       isTrackingMode = wallet.spendSecretKey == NULL_SECRET_KEY;
@@ -914,9 +873,8 @@ void WalletGreen::changePassword(const std::string& oldPassword, const std::stri
     return;
   }
 
-  Crypto::cn_context cnContext;
   Crypto::chacha8_key newKey;
-  Crypto::generate_chacha8_key(cnContext, newPassword, newKey);
+  Crypto::generate_chacha8_key(newPassword, newKey);
 
   m_containerStorage.atomicUpdate([this, newKey](ContainerStorage& newStorage) {
     copyContainerStoragePrefix(m_containerStorage, m_key, newStorage, newKey);

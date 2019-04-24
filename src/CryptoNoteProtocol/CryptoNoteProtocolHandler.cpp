@@ -1,19 +1,7 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
-//
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
+// Copyright (c) 2017-2019, The Iridium developers
 // You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// If not, see <http://www.gnu.org/licenses/>.
 
 #include "CryptoNoteProtocolHandler.h"
 
@@ -28,6 +16,7 @@
 #include "CryptoNoteCore/Currency.h"
 #include "CryptoNoteCore/VerificationContext.h"
 #include "P2p/LevinProtocol.h"
+#include "Common/Banners.h"
 
 using namespace Logging;
 using namespace Common;
@@ -142,6 +131,9 @@ CryptoNoteProtocolHandler::CryptoNoteProtocolHandler(const Currency& currency, S
   }
 }
 
+CryptoNoteProtocolHandler::~CryptoNoteProtocolHandler(){
+}
+
 size_t CryptoNoteProtocolHandler::getPeerCount() const {
   return m_peersCount;
 }
@@ -226,25 +218,48 @@ uint32_t CryptoNoteProtocolHandler::get_current_blockchain_height() {
   return m_core.getTopBlockIndex() + 1;
 }
 
-bool CryptoNoteProtocolHandler::process_payload_sync_data(const CORE_SYNC_DATA& hshd, CryptoNoteConnectionContext& context, bool is_inital) {
-  if (context.m_state == CryptoNoteConnectionContext::state_befor_handshake && !is_inital)
+bool CryptoNoteProtocolHandler::process_payload_sync_data(const CORE_SYNC_DATA& hshd, CryptoNoteConnectionContext& context, bool is_initial) {
+  if (context.m_state == CryptoNoteConnectionContext::state_befor_handshake && !is_initial)
     return true;
 
   if (context.m_state == CryptoNoteConnectionContext::state_synchronizing) {
   } else if (m_core.hasBlock(hshd.top_id)) {
-    if (is_inital) {
+    if (is_initial) {
       on_connection_synchronized();
       context.m_state = CryptoNoteConnectionContext::state_pool_sync_required;
     } else {
       context.m_state = CryptoNoteConnectionContext::state_normal;
     }
   } else {
-    int64_t diff = static_cast<int64_t>(hshd.current_height) - static_cast<int64_t>(get_current_blockchain_height());
+    uint32_t currentHeight = get_current_blockchain_height();
+    uint32_t remoteHeight = hshd.current_height;
+    int64_t diff = static_cast<int64_t>(remoteHeight) -
+                   static_cast<int64_t>(currentHeight);
+    uint32_t progress = currentHeight * 100 / remoteHeight;
+    std::stringstream ss;
+    ss << "Syncing with the network : ";
+    if (diff >= 0) {
+      ss << progress << "%"
+         << " complete (";
+      ss << std::abs(diff) / (24 * 60 * 60 / m_currency.difficultyTarget())
+         << " days behind ";
+      ss << " : " << currentHeight << "/" << remoteHeight << ")";
 
-    logger(diff >= 0 ? (is_inital ? Logging::INFO : Logging::DEBUGGING) : Logging::TRACE, Logging::BRIGHT_YELLOW) << context <<
-      "Sync data returned unknown top block: " << get_current_blockchain_height() << " -> " << hshd.current_height
-      << " [" << std::abs(diff) << " blocks (" << std::abs(diff) / (24 * 60 * 60 / m_currency.difficultyTarget()) << " days) "
-      << (diff >= 0 ? std::string("behind") : std::string("ahead")) << "] " << std::endl << "SYNCHRONIZATION started";
+    }
+    /* We're ahead of the remote node, no need to print percentages */
+    else {
+      ss << "You are " << std::abs(diff) << " blocks ("
+         << std::abs(diff) / (24 * 60 * 60 / m_currency.difficultyTarget())
+         << " days) ahead ";
+    }
+
+    if (diff >= 0) {
+      if (is_initial) {
+        logger(INFO, GREEN) << ss.str() << context;
+      } else {
+        logger(DEBUGGING, GREEN) << context << ss.str();
+      }
+    }
 
     logger(Logging::DEBUGGING) << "Remote top block height: " << hshd.current_height << ", id: " << hshd.top_id;
     //let the socket to send response to handshake, but request callback, to let send request data after response
@@ -255,7 +270,7 @@ bool CryptoNoteProtocolHandler::process_payload_sync_data(const CORE_SYNC_DATA& 
   updateObservedHeight(hshd.current_height, context);
   context.m_remote_blockchain_height = hshd.current_height;
 
-  if (is_inital) {
+  if (is_initial) {
     m_peersCount++;
     m_observerManager.notify(&ICryptoNoteProtocolObserver::peerCountUpdated, m_peersCount.load());
   }
@@ -581,15 +596,7 @@ bool CryptoNoteProtocolHandler::request_missing_objects(CryptoNoteConnectionCont
 bool CryptoNoteProtocolHandler::on_connection_synchronized() {
   bool val_expected = false;
   if (m_synchronized.compare_exchange_strong(val_expected, true)) {
-    logger(Logging::INFO) << ENDL << "**********************************************************************" << ENDL
-      << "You are now synchronized with the Iridium network." << ENDL
-      << ENDL
-      << "Exit iridiumd and iridium_simplewallet with the \"exit\" or \"save\" command." << ENDL
-      << "Otherwise, you may lose your blockchain and wallet data." << ENDL
-      << ENDL
-      << "Use \"help\" command to see the list of available commands." << ENDL
-      << "**********************************************************************";
-
+    logger(Logging::INFO) << banner << bannerText << ENDL;
     m_observerManager.notify(&ICryptoNoteProtocolObserver::blockchainSynchronized, m_core.getTopBlockIndex());
   }
   return true;
@@ -689,8 +696,8 @@ void CryptoNoteProtocolHandler::updateObservedHeight(uint32_t peerHeight, const 
     std::lock_guard<std::mutex> lock(m_observedHeightMutex);
 
     uint32_t height = m_observedHeight;
-    if (context.m_remote_blockchain_height != 0 && context.m_last_response_height <= context.m_remote_blockchain_height - 1) {
-      m_observedHeight = context.m_remote_blockchain_height - 1;
+    if (context.m_remote_blockchain_height != 0 && context.m_last_response_height <= context.m_remote_blockchain_height) {
+      m_observedHeight = context.m_remote_blockchain_height;
       if (m_observedHeight != height) {
         updated = true;
       }

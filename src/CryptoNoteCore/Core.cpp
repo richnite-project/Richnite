@@ -1,19 +1,7 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
-//
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
+// Copyright (c) 2017-2019, The Iridium developers
 // You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// If not, see <http://www.gnu.org/licenses/>.
 
 #include <algorithm>
 #include <numeric>
@@ -211,6 +199,7 @@ Core::Core(const Currency& currency, Logging::ILogger& logger, Checkpoints&& che
   upgradeManager->addMajorBlockVersion(BLOCK_MAJOR_VERSION_2, currency.upgradeHeight(BLOCK_MAJOR_VERSION_2));
   upgradeManager->addMajorBlockVersion(BLOCK_MAJOR_VERSION_3, currency.upgradeHeight(BLOCK_MAJOR_VERSION_3));
   upgradeManager->addMajorBlockVersion(BLOCK_MAJOR_VERSION_4, currency.upgradeHeight(BLOCK_MAJOR_VERSION_4));
+  upgradeManager->addMajorBlockVersion(BLOCK_MAJOR_VERSION_5, currency.upgradeHeight(BLOCK_MAJOR_VERSION_5));
 
   transactionPool = std::unique_ptr<ITransactionPoolCleanWrapper>(new TransactionPoolCleanWrapper(
     std::unique_ptr<ITransactionPool>(new TransactionPool(logger)),
@@ -416,8 +405,8 @@ bool Core::queryBlocks(const std::vector<Crypto::Hash>& blockHashes, uint64_t ti
     fillQueryBlockFullInfo(fullOffset, currentIndex, BLOCKS_SYNCHRONIZING_DEFAULT_COUNT, entries);
 
     return true;
-  } catch (std::exception&) {
-    // TODO log
+  } catch (std::exception& e) {
+    logger(Logging::ERROR) << "Failed to query blocks: " << e.what();
     return false;
   }
 }
@@ -639,8 +628,7 @@ std::error_code Core::addBlock(const CachedBlock& cachedBlock, RawBlock&& rawBlo
       logger(Logging::WARNING) << "Checkpoint block hash mismatch for block " << cachedBlock.getBlockHash();
       return error::BlockValidationError::CHECKPOINT_BLOCK_HASH_MISMATCH;
     }
-  } else if (previousBlockIndex > 8500 && !currency.checkProofOfWork(cryptoContext, cachedBlock, currentDifficulty)) {
-      // Iridium hack -- between blocks 6358 and 8500 difficulty checks were turned off (bug)
+  } else if (! currency.checkProofOfWork(cachedBlock, currentDifficulty)) {
     logger(Logging::WARNING) << "Proof of work too weak for block " << cachedBlock.getBlockHash()
 			     << " Diff: " << currentDifficulty;
     return error::BlockValidationError::PROOF_OF_WORK_TOO_WEAK;
@@ -663,9 +651,9 @@ std::error_code Core::addBlock(const CachedBlock& cachedBlock, RawBlock&& rawBlo
         actualizePoolTransactionsLite(validatorState);
 
         ret = error::AddBlockErrorCode::ADDED_TO_MAIN;
-        logger(Logging::DEBUGGING) << "Block " << cachedBlock.getBlockHash() << " added to main chain. Index: " << (previousBlockIndex + 1);
+        logger(Logging::DEBUGGING,Logging::BLUE) << "Block " << cachedBlock.getBlockHash() << " added to main chain. Index: " << (previousBlockIndex + 1);
         if ((previousBlockIndex + 1) % 100 == 0) {
-          logger(Logging::INFO) << "Block " << cachedBlock.getBlockHash() << " added to main chain. Index: " << (previousBlockIndex + 1);
+          logger(Logging::INFO,Logging::BLUE) << "Block " << cachedBlock.getBlockHash() << " added to main chain. Index: " << (previousBlockIndex + 1);
         }
 
         notifyObservers(makeDelTransactionMessage(std::move(hashes), Messages::DeleteTransaction::Reason::InBlock));
@@ -1072,7 +1060,7 @@ bool Core::getBlockTemplate(BlockTemplate& b, const AccountPublicAddress& adr, c
   }
 
   b.previousBlockHash = getTopBlockHash();
-  b.timestamp = time(nullptr);
+  b.timestamp = static_cast<uint64_t>(time(nullptr));
 
   // https://github.com/graft-project/GraftNetwork/pull/118/commits
   // Thanks Jagerman for this
@@ -1508,14 +1496,14 @@ std::error_code Core::validateBlock(const CachedBlock& cachedBlock, IBlockchainC
 
   minerReward = 0;
 
-  if (upgradeManager->getBlockMajorVersion(cachedBlock.getBlockIndex()) != block.majorVersion) {
+  if (upgradeManager->getBlockMajorVersion(previousBlockIndex+1) != block.majorVersion) {
     return error::BlockValidationError::WRONG_VERSION;
   }
 
   if (block.majorVersion >= BLOCK_MAJOR_VERSION_2) {
     if (block.majorVersion == BLOCK_MAJOR_VERSION_2 && block.parentBlock.majorVersion > BLOCK_MAJOR_VERSION_1) {
       logger(Logging::ERROR, Logging::BRIGHT_RED) << "Parent block of block " << cachedBlock.getBlockHash() << " has wrong major version: "
-                                << static_cast<int>(block.parentBlock.majorVersion) << ", at index " << cachedBlock.getBlockIndex()
+                                << static_cast<int>(block.parentBlock.majorVersion) << ", at index " << previousBlockIndex+1
                                 << " expected version is " << static_cast<int>(BLOCK_MAJOR_VERSION_1);
       return error::BlockValidationError::PARENT_BLOCK_WRONG_VERSION;
     }
@@ -1525,15 +1513,17 @@ std::error_code Core::validateBlock(const CachedBlock& cachedBlock, IBlockchainC
     }
   }
 
-  if (block.timestamp > getAdjustedTime() + currency.blockFutureTimeLimit()) {
+  if (block.timestamp > getAdjustedTime() + (block.majorVersion >= BLOCK_MAJOR_VERSION_5 ? currency.blockFutureTimeLimitV5() : currency.blockFutureTimeLimit())) {
     return error::BlockValidationError::TIMESTAMP_TOO_FAR_IN_FUTURE;
   }
 
-  auto timestamps = cache->getLastTimestamps(currency.timestampCheckWindow(), previousBlockIndex, addGenesisBlock);
-  if (timestamps.size() >= currency.timestampCheckWindow()) {
+  auto checkWindow = block.majorVersion >= BLOCK_MAJOR_VERSION_5 ? currency.timestampCheckWindowV4() : currency.timestampCheckWindow();
+  auto timestamps = cache->getLastTimestamps(checkWindow, previousBlockIndex, addGenesisBlock);
+
+  if (timestamps.size() >= checkWindow) {
     auto median_ts = Common::medianValue(timestamps);
     if (block.timestamp < median_ts) {
-      return error::BlockValidationError::TIMESTAMP_TOO_FAR_IN_PAST;
+        return error::BlockValidationError::TIMESTAMP_TOO_FAR_IN_PAST;
     }
   }
 

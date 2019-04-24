@@ -1,19 +1,7 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
-//
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
+// Copyright (c) 2017-2019, The Iridium developers
 // You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// If not, see <http://www.gnu.org/licenses/>.
 
 #include "BaseFunctionalTests.h"
 
@@ -47,9 +35,9 @@
 #endif
 
 #ifdef _WIN32
-const std::string DAEMON_FILENAME = "bytecoind.exe";
+const std::string DAEMON_FILENAME = "iridiumd.exe";
 #else
-const std::string DAEMON_FILENAME = "bytecoind";
+const std::string DAEMON_FILENAME = "iridiumd";
 #endif
 
 using namespace Tests::Common;
@@ -166,7 +154,7 @@ void BaseFunctionalTests::startNode(size_t index) {
     << "rpc-bind-port=" << rpcPort << std::endl
     << "p2p-bind-port=" << p2pPort << std::endl
     << "log-level=4" << std::endl
-    << "log-file=test_bytecoind_" << index << ".log" << std::endl;
+    << "log-file=test_iridiumd_" << index << ".log" << std::endl;
 
   switch (m_topology) {
   case Line:
@@ -201,7 +189,7 @@ void BaseFunctionalTests::startNode(size_t index) {
   }
 
 #if defined WIN32
-  std::string commandLine = "start /MIN \"bytecoind" + std::to_string(index) + "\" \"" + daemonPath.string() +
+  std::string commandLine = "start /MIN \"iridiumd" + std::to_string(index) + "\" \"" + daemonPath.string() +
     "\" --testnet --data-dir=\"" + dataDirPath + "\" --config-file=daemon.conf";
   LOG_DEBUG(commandLine);
   system(commandLine.c_str());
@@ -213,7 +201,7 @@ void BaseFunctionalTests::startNode(size_t index) {
     close(2);
     std::string dataDir = "--data-dir=" + dataDirPath + "";
     LOG_TRACE(pathToDaemon);
-    if (execl(pathToDaemon.c_str(), "bytecoind", "--testnet", dataDir.c_str(), "--config-file=daemon.conf", NULL) == -1) {
+    if (execl(pathToDaemon.c_str(), "iridiumd", "--testnet", dataDir.c_str(), "--config-file=daemon.conf", NULL) == -1) {
       LOG_ERROR(TO_STRING(errno));
     }
     abort();

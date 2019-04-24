@@ -1,7 +1,8 @@
 .DS_Store
 build
 .vs
-CMakeFiles.txt.user
+CMakeLists.txt.user
+CMakeLists.txt.user.*
 *.dir
 *.vcxproj
 *.filters

@@ -1,19 +1,7 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
-//
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
+// Copyright (c) 2017-2019, The Iridium developers
 // You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
@@ -47,7 +35,7 @@ public:
 class NodeRpcProxy : public CryptoNote::INode {
 public:
   NodeRpcProxy(const std::string& nodeHost, unsigned short nodePort, Logging::ILogger& logger);
-  virtual ~NodeRpcProxy();
+  virtual ~NodeRpcProxy() override;
 
   virtual bool addObserver(CryptoNote::INodeObserver* observer) override;
   virtual bool removeObserver(CryptoNote::INodeObserver* observer) override;
@@ -100,16 +88,11 @@ private:
 
   std::error_code doGetBlockHashesByTimestamps(uint64_t timestampBegin, size_t secondsCount, std::vector<Crypto::Hash>& blockHashes);
   std::error_code doRelayTransaction(const CryptoNote::Transaction& transaction);
-  std::error_code doGetRandomOutsByAmounts(std::vector<uint64_t>& amounts, uint16_t outsCount,
-                                           std::vector<COMMAND_RPC_GET_RANDOM_OUTPUTS_FOR_AMOUNTS::outs_for_amount>& result);
-  std::error_code doGetNewBlocks(std::vector<Crypto::Hash>& knownBlockIds,
-    std::vector<CryptoNote::RawBlock>& newBlocks, uint32_t& startHeight);
-  std::error_code doGetTransactionOutsGlobalIndices(const Crypto::Hash& transactionHash,
-                                                    std::vector<uint32_t>& outsGlobalIndices);
-  std::error_code doQueryBlocksLite(const std::vector<Crypto::Hash>& knownBlockIds, uint64_t timestamp,
-    std::vector<CryptoNote::BlockShortEntry>& newBlocks, uint32_t& startHeight);
-  std::error_code doGetPoolSymmetricDifference(std::vector<Crypto::Hash>&& knownPoolTxIds, Crypto::Hash knownBlockId, bool& isBcActual,
-          std::vector<std::unique_ptr<ITransactionReader>>& newTxs, std::vector<Crypto::Hash>& deletedTxIds);
+  std::error_code doGetRandomOutsByAmounts(std::vector<uint64_t>& amounts, uint16_t outsCount,std::vector<COMMAND_RPC_GET_RANDOM_OUTPUTS_FOR_AMOUNTS::outs_for_amount>& result);
+  std::error_code doGetNewBlocks(std::vector<Crypto::Hash>& knownBlockIds,std::vector<CryptoNote::RawBlock>& newBlocks, uint32_t& startHeight);
+  std::error_code doGetTransactionOutsGlobalIndices(const Crypto::Hash& transactionHash,std::vector<uint32_t>& outsGlobalIndices);
+  std::error_code doQueryBlocksLite(const std::vector<Crypto::Hash>& knownBlockIds, uint64_t timestamp,std::vector<CryptoNote::BlockShortEntry>& newBlocks, uint32_t& startHeight);
+  std::error_code doGetPoolSymmetricDifference(std::vector<Crypto::Hash>&& knownPoolTxIds, Crypto::Hash knownBlockId, bool& isBcActual,std::vector<std::unique_ptr<ITransactionReader>>& newTxs, std::vector<Crypto::Hash>& deletedTxIds);
   std::error_code doGetBlocks(const std::vector<Crypto::Hash>& blockHashes, std::vector<BlockDetails>& blocks);
   std::error_code doGetTransactionHashesByPaymentId(const Crypto::Hash& paymentId, std::vector<Crypto::Hash>& transactionHashes);
   std::error_code doGetTransactions(const std::vector<Crypto::Hash>& transactionHashes, std::vector<TransactionDetails>& transactions);
@@ -155,6 +138,8 @@ private:
   BlockHeaderInfo lastLocalBlockHeaderInfo;
   //protect it with mutex if decided to add worker threads
   std::unordered_set<Crypto::Hash> m_knownTxs;
+  Crypto::Hash m_lastHash = {0};
+  Crypto::Hash nullHash = {0};
 
   bool m_connected;
 };

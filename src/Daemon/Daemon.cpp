@@ -1,19 +1,7 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
-//
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
+// Copyright (c) 2017-2019, The Iridium developers
 // You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// If not, see <http://www.gnu.org/licenses/>.
 
 #include <fstream>
 
@@ -59,7 +47,7 @@ namespace po = boost::program_options;
 
 namespace
 {
-  const command_line::arg_descriptor<std::string> arg_config_file = {"config-file", "Specify configuration file", std::string(CryptoNote::CRYPTONOTE_NAME) + ".conf"};
+  const command_line::arg_descriptor<std::string> arg_config_file = {"config-file", "Specify configuration file", std::string(CryptoNote::CRYPTONOTE_NAME) + "d.conf"};
   const command_line::arg_descriptor<bool>        arg_os_version  = {"os-version", ""};
   const command_line::arg_descriptor<std::string> arg_log_file    = {"log-file", "", ""};
   const command_line::arg_descriptor<int>         arg_log_level   = {"log-level", "", 2}; // info level
@@ -68,7 +56,7 @@ namespace
     "network id is changed. Use it with --data-dir flag. The wallet must be launched with --testnet flag.", false};
 }
 
-bool command_line_preprocessor(const boost::program_options::variables_map& vm, LoggerRef& logger);
+bool command_line_preprocessor(const boost::program_options::variables_map& vm);
 
 JsonValue buildLoggerConfiguration(Level level, const std::string& logfile) {
   JsonValue loggerConfiguration(JsonValue::OBJECT);
@@ -154,7 +142,7 @@ int main(int argc, char* argv[])
 
     if (!r)
       return 1;
-  
+
     auto modulePath = Common::NativePathToGeneric(argv[0]);
     auto cfgLogFile = Common::NativePathToGeneric(command_line::get_arg(vm, arg_log_file));
 
@@ -166,14 +154,14 @@ int main(int argc, char* argv[])
       }
     }
 
-    Level cfgLogLevel = static_cast<Level>(static_cast<int>(Logging::ERROR) + command_line::get_arg(vm, arg_log_level));
+    auto cfgLogLevel = static_cast<Level>(Logging::ERROR + command_line::get_arg(vm, arg_log_level));
 
     // configure logging
     logManager.configure(buildLoggerConfiguration(cfgLogLevel, cfgLogFile));
 
     logger(INFO) << CryptoNote::CRYPTONOTE_NAME << " v" << PROJECT_VERSION_LONG;
 
-    if (command_line_preprocessor(vm, logger)) {
+    if (command_line_preprocessor(vm)) {
       return 0;
     }
 
@@ -195,7 +183,7 @@ int main(int argc, char* argv[])
         checkpoints.addCheckpoint(cp.index, cp.blockId);
       }
     }
-    
+
     NetNodeConfig netNodeConfig;
     netNodeConfig.init(vm);
     netNodeConfig.setTestnet(testnet_mode);
@@ -297,7 +285,7 @@ int main(int argc, char* argv[])
   return 0;
 }
 
-bool command_line_preprocessor(const boost::program_options::variables_map &vm, LoggerRef &logger) {
+bool command_line_preprocessor(const boost::program_options::variables_map &vm) {
   bool exit = false;
 
   if (command_line::get_arg(vm, command_line::arg_version)) {
@@ -309,9 +297,5 @@ bool command_line_preprocessor(const boost::program_options::variables_map &vm, 
     exit = true;
   }
 
-  if (exit) {
-    return true;
-  }
-
-  return false;
+  return exit;
 }

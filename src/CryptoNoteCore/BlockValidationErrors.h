@@ -1,19 +1,7 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
-//
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
+// Copyright (c) 2017-2019, The Iridium developers
 // You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
@@ -26,6 +14,7 @@ namespace error {
 enum class BlockValidationError {
   VALIDATION_SUCCESS = 0,
   WRONG_VERSION,
+  WRONG_MINOR_VERSION,
   PARENT_BLOCK_SIZE_TOO_BIG,
   PARENT_BLOCK_WRONG_VERSION,
   TIMESTAMP_TOO_FAR_IN_FUTURE,
@@ -43,11 +32,11 @@ class BlockValidationErrorCategory : public std::error_category {
 public:
   static BlockValidationErrorCategory INSTANCE;
 
-  virtual const char* name() const throw() {
+  virtual const char* name() const noexcept {
     return "BlockValidationErrorCategory";
   }
 
-  virtual std::error_condition default_error_condition(int ev) const throw() {
+  virtual std::error_condition default_error_condition(int ev) const noexcept {
     return std::error_condition(ev, *this);
   }
 
@@ -57,6 +46,7 @@ public:
     switch (code) {
       case BlockValidationError::VALIDATION_SUCCESS: return "Block validated successfully";
       case BlockValidationError::WRONG_VERSION: return "Wrong block version";
+      case BlockValidationError::WRONG_MINOR_VERSION: return "Wrong block minor version";
       case BlockValidationError::PARENT_BLOCK_SIZE_TOO_BIG: return "Parent block size is too big";
       case BlockValidationError::PARENT_BLOCK_WRONG_VERSION: return "Parent block has wrong version";
       case BlockValidationError::TIMESTAMP_TOO_FAR_IN_FUTURE: return "Timestamp is too far in future";

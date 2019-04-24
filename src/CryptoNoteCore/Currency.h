@@ -1,19 +1,7 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
-//
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
+// Copyright (c) 2017-2019, The Iridium developers
 // You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
@@ -43,6 +31,7 @@ public:
   size_t timestampCheckWindow() const { return m_timestampCheckWindow; }
   size_t timestampCheckWindowV4() const { return m_timestampCheckWindowV4; }
   uint64_t blockFutureTimeLimit() const { return m_blockFutureTimeLimit; }
+  uint64_t blockFutureTimeLimitV5() const { return m_blockFutureTimeLimitV5; }
 
   uint64_t moneySupply() const { return m_moneySupply; }
   unsigned int emissionSpeedFactor() const { return m_emissionSpeedFactor; }
@@ -69,7 +58,7 @@ public:
   size_t difficultyLag() const { return m_difficultyLag; }
   size_t difficultyLagByBlockVersion(uint8_t blockMajorVersion) const;
   size_t difficultyCut() const { return m_difficultyCut; }
-  size_t difficultyCutByBlockVersion(uint8_t blockMajorVersion) const;
+//  size_t difficultyCutByBlockVersion() const;
   size_t difficultyBlocksCount() const { return m_difficultyWindow + m_difficultyLag; }
   size_t difficultyBlocksCountByBlockVersion(uint8_t blockMajorVersion) const;
 
@@ -106,11 +95,11 @@ public:
   const Crypto::Hash& genesisBlockHash() const { return cachedGenesisBlock->getBlockHash(); }
 
   bool getBlockReward(uint8_t blockMajorVersion, size_t medianSize, size_t currentBlockSize, uint64_t alreadyGeneratedCoins, uint64_t fee,
-    uint64_t& reward, int64_t& emissionChange) const;
+  uint64_t& reward, int64_t& emissionChange) const;
   size_t maxBlockCumulativeSize(uint64_t height) const;
 
   bool constructMinerTx(uint8_t blockMajorVersion, uint32_t height, size_t medianSize, uint64_t alreadyGeneratedCoins, size_t currentBlockSize,
-    uint64_t fee, const AccountPublicAddress& minerAddress, Transaction& tx, const BinaryArray& extraNonce = BinaryArray(), size_t maxOuts = 1) const;
+  uint64_t fee, const AccountPublicAddress& minerAddress, Transaction& tx, const BinaryArray& extraNonce = BinaryArray(), size_t maxOuts = 1) const;
 
   bool isFusionTransaction(const Transaction& transaction) const;
   bool isFusionTransaction(const Transaction& transaction, size_t size) const;
@@ -126,23 +115,23 @@ public:
   std::string formatAmount(int64_t amount) const;
   bool parseAmount(const std::string& str, uint64_t& amount) const;
 
-  Difficulty nextDifficulty(uint8_t version, uint32_t blockIndex, std::vector<uint64_t> timestamps, std::vector<Difficulty> cumulativeDifficulties) const;
-  Difficulty nextDifficultyV1(uint8_t &version, std::vector<uint64_t> timestamps, std::vector<Difficulty> cumulativeDifficulties) const;
-  Difficulty nextDifficultyV2(uint8_t &version, std::vector<uint64_t> timestamps, std::vector<Difficulty> cumulativeDifficulties) const;
-  Difficulty nextDifficultyV3(uint8_t &version, std::vector<uint64_t> timestamps, std::vector<Difficulty> cumulativeDifficulties) const;
-  Difficulty nextDifficultyV4(uint8_t &version, std::vector<uint64_t> timestamps, std::vector<Difficulty> cumulativeDifficulties) const;
+  Difficulty nextDifficulty(uint8_t &version, uint32_t &blockIndex, std::vector<uint64_t> timestamps, std::vector<Difficulty> cumulativeDifficulties) const;
+  Difficulty nextDifficultyV1(uint8_t &version, std::vector<uint64_t>& timestamps, std::vector<Difficulty>& cumulativeDifficulties) const;
+  Difficulty nextDifficultyV2(uint8_t &version, std::vector<uint64_t>& timestamps, std::vector<Difficulty>& cumulativeDifficulties) const;
+  Difficulty nextDifficultyV3(uint8_t &version, std::vector<uint64_t>& timestamps, std::vector<Difficulty>& cumulativeDifficulties) const;
+  Difficulty nextDifficultyV4(uint8_t &version, std::vector<uint64_t>& timestamps, std::vector<Difficulty>& cumulativeDifficulties) const;
+  Difficulty nextDifficultyV5(std::vector<uint64_t> &timestamps, std::vector<uint64_t> &cumulative_difficulties, const uint64_t &T, const uint64_t &N, const uint64_t &height, const uint64_t &FORK_HEIGHT, const uint64_t &difficulty_guess) const;
 
-  bool checkProofOfWorkV1(Crypto::cn_context& context, const CachedBlock& block, Difficulty currentDifficulty) const;
-  bool checkProofOfWorkV2(Crypto::cn_context& context, const CachedBlock& block, Difficulty currentDifficulty) const;
-  bool checkProofOfWork(Crypto::cn_context& context, const CachedBlock& block, Difficulty currentDifficulty) const;
+  bool checkProofOfWork(const CachedBlock& block, Difficulty currentDifficulty) const;
+  bool checkProofOfWorkV1(const CachedBlock& block, Difficulty currentDifficulty) const;
+  bool checkProofOfWorkV2(const CachedBlock& block, Difficulty currentDifficulty) const;
 
   Currency(Currency&& currency);
 
   size_t getApproximateMaximumInputCount(size_t transactionSize, size_t outputCount, size_t mixinCount) const;
 
 private:
-  Currency(Logging::ILogger& log) : logger(log, "currency") {
-  }
+  Currency(Logging::ILogger& log) : logger(log, "currency") {}
 
   bool init();
 
@@ -158,6 +147,7 @@ private:
   size_t m_timestampCheckWindow;
   size_t m_timestampCheckWindowV4;
   uint64_t m_blockFutureTimeLimit;
+  uint64_t m_blockFutureTimeLimitV5;
 
   uint64_t m_moneySupply;
   unsigned int m_emissionSpeedFactor;
@@ -177,7 +167,10 @@ private:
   uint64_t m_defaultDustThreshold;
 
   uint64_t m_difficultyTarget;
-  uint64_t m_testnet_DifficultyTarget;
+  uint64_t m_difficultyGuess;
+  uint64_t m_difficultyGuess_V5;
+  uint64_t m_testnetDifficultyTarget;
+  uint64_t m_testnetDifficultyGuess;
 
   size_t m_difficultyWindow;
   size_t m_difficultyLag;
@@ -201,11 +194,12 @@ private:
   uint32_t m_upgradeHeightV2;
   uint32_t m_upgradeHeightV3;
   uint32_t m_upgradeHeightV4;
+  uint32_t m_upgradeHeightV5;
 
   uint32_t m_testnetUpgradeHeightV2;
   uint32_t m_testnetUpgradeHeightV3;
   uint32_t m_testnetUpgradeHeightV4;
-
+  uint32_t m_testnetUpgradeHeightV5;
 
   unsigned int m_upgradeVotingThreshold;
   uint32_t m_upgradeVotingWindow;
@@ -248,6 +242,7 @@ public:
   CurrencyBuilder& timestampCheckWindow(size_t val) { m_currency.m_timestampCheckWindow = val; return *this; }
   CurrencyBuilder& timestampCheckWindowV4(size_t val) { m_currency.m_timestampCheckWindowV4 = val; return *this; }
   CurrencyBuilder& blockFutureTimeLimit(uint64_t val) { m_currency.m_blockFutureTimeLimit = val; return *this; }
+  CurrencyBuilder& blockFutureTimeLimitV5(uint64_t val) { m_currency.m_blockFutureTimeLimitV5 = val; return *this; }
 
   CurrencyBuilder& moneySupply(uint64_t val) { m_currency.m_moneySupply = val; return *this; }
   CurrencyBuilder& emissionSpeedFactor(unsigned int val);
@@ -267,7 +262,10 @@ public:
   CurrencyBuilder& defaultDustThreshold(uint64_t val) { m_currency.m_defaultDustThreshold = val; return *this; }
 
   CurrencyBuilder& difficultyTarget(uint64_t val) { m_currency.m_difficultyTarget = val; return *this; }
-  CurrencyBuilder& testnetDifficultyTarget(uint64_t val) { m_currency.m_testnet_DifficultyTarget = val; return *this; }
+  CurrencyBuilder& testnetDifficultyTarget(uint64_t val) { m_currency.m_testnetDifficultyTarget = val; return *this; }
+  CurrencyBuilder& difficultyGuess(uint64_t val) { m_currency.m_difficultyGuess = val; return *this; }
+  CurrencyBuilder& difficultyGuess_V5(uint64_t val) { m_currency.m_difficultyGuess_V5 = val; return *this; }
+  CurrencyBuilder& testnetDifficultyGuess(uint64_t val) { m_currency.m_testnetDifficultyGuess = val; return *this; }
 
   CurrencyBuilder& difficultyWindow(size_t val);
   CurrencyBuilder& difficultyLag(size_t val) { m_currency.m_difficultyLag = val; return *this; }
@@ -291,10 +289,12 @@ public:
   CurrencyBuilder& upgradeHeightV2(uint32_t val) { m_currency.m_upgradeHeightV2 = val; return *this; }
   CurrencyBuilder& upgradeHeightV3(uint32_t val) { m_currency.m_upgradeHeightV3 = val; return *this; }
   CurrencyBuilder& upgradeHeightV4(uint32_t val) { m_currency.m_upgradeHeightV4 = val; return *this; }
+  CurrencyBuilder& upgradeHeightV5(uint32_t val) { m_currency.m_upgradeHeightV5 = val; return *this; }
 
   CurrencyBuilder& testnetUpgradeHeightV2(uint32_t val) { m_currency.m_testnetUpgradeHeightV2 = val; return *this; }
   CurrencyBuilder& testnetUpgradeHeightV3(uint32_t val) { m_currency.m_testnetUpgradeHeightV3 = val; return *this; }
   CurrencyBuilder& testnetUpgradeHeightV4(uint32_t val) { m_currency.m_testnetUpgradeHeightV4 = val; return *this; }
+  CurrencyBuilder& testnetUpgradeHeightV5(uint32_t val) { m_currency.m_testnetUpgradeHeightV5 = val; return *this; }
 
   CurrencyBuilder& upgradeVotingThreshold(unsigned int val);
   CurrencyBuilder& upgradeVotingWindow(uint32_t val) { m_currency.m_upgradeVotingWindow = val; return *this; }

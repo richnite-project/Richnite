@@ -1,19 +1,7 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
-//
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
+// Copyright (c) 2017-2019, The Iridium developers
 // You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// If not, see <http://www.gnu.org/licenses/>.
 
 #include "Currency.h"
 #include <cctype>
@@ -78,14 +66,19 @@ bool Currency::init() {
         m_upgradeHeightV2 = m_testnetUpgradeHeightV2;
         m_upgradeHeightV3 = m_testnetUpgradeHeightV3;
         m_upgradeHeightV4 = m_testnetUpgradeHeightV4;
-        m_difficultyTarget = m_testnet_DifficultyTarget;
+        m_upgradeHeightV5 = m_testnetUpgradeHeightV5;
+        m_difficultyTarget = m_testnetDifficultyTarget;
+        m_difficultyGuess = m_testnetDifficultyGuess;
         m_blocksFileName = "testnet_" + m_blocksFileName;
         m_blockIndexesFileName = "testnet_" + m_blockIndexesFileName;
         m_txPoolFileName = "testnet_" + m_txPoolFileName;
-        logger(INFO, RED) << "V2 Height : " << m_upgradeHeightV2;
-        logger(INFO, RED) << "V3 Height : " << m_upgradeHeightV3;
-        logger(INFO, RED) << "V4 Height : " << m_upgradeHeightV4;
-        logger(INFO, RED) << "Target : " << m_difficultyTarget << "s";
+        logger(INFO, BRIGHT_GREEN) << "Testnet Mode";
+        logger(INFO, WHITE) << "V2 Height : " << m_upgradeHeightV2;
+        logger(INFO, WHITE) << "V3 Height : " << m_upgradeHeightV3;
+        logger(INFO, WHITE) << "V4 Height : " << m_upgradeHeightV4;
+        logger(INFO, WHITE) << "V5 Height : " << m_upgradeHeightV5;
+        logger(INFO, WHITE) << "Target : " << m_difficultyTarget << "s";
+        logger(INFO, WHITE) << "Guess : " << m_difficultyGuess;
     }
 
     return true;
@@ -127,7 +120,9 @@ bool Currency::generateGenesisBlock() {
 }
 
 size_t Currency::difficultyWindowByBlockVersion(uint8_t blockMajorVersion) const {
-    if (blockMajorVersion >= BLOCK_MAJOR_VERSION_4) {
+    if (blockMajorVersion >= BLOCK_MAJOR_VERSION_5) {
+        return CryptoNote::parameters::DIFFICULTY_WINDOW_V5;
+    } else if (blockMajorVersion == BLOCK_MAJOR_VERSION_4) {
         return CryptoNote::parameters::DIFFICULTY_WINDOW_V4;
     } else if (blockMajorVersion == BLOCK_MAJOR_VERSION_2 || blockMajorVersion == BLOCK_MAJOR_VERSION_3) {
         return CryptoNote::parameters::DIFFICULTY_WINDOW_V2;
@@ -144,9 +139,9 @@ size_t Currency::difficultyLagByBlockVersion(uint8_t blockMajorVersion) const {
     }
 }
 
-size_t Currency::difficultyCutByBlockVersion(uint8_t blockMajorVersion) const {
-        return CryptoNote::parameters::DIFFICULTY_CUT;
-}
+//size_t Currency::difficultyCutByBlockVersion() const {
+//        return CryptoNote::parameters::DIFFICULTY_CUT;
+//}
 
 size_t Currency::difficultyBlocksCountByBlockVersion(uint8_t blockMajorVersion) const {
     return difficultyWindowByBlockVersion(blockMajorVersion) + difficultyLagByBlockVersion(blockMajorVersion);
@@ -161,7 +156,9 @@ size_t Currency::blockGrantedFullRewardZoneByBlockVersion(uint8_t blockMajorVers
 }
 
 uint32_t Currency::upgradeHeight(uint8_t majorVersion) const {
-    if (majorVersion == BLOCK_MAJOR_VERSION_4) {
+    if (majorVersion == BLOCK_MAJOR_VERSION_5) {
+        return m_upgradeHeightV5;
+    } else if (majorVersion == BLOCK_MAJOR_VERSION_4) {
         return m_upgradeHeightV4;
     } else if (majorVersion == BLOCK_MAJOR_VERSION_3) {
         return m_upgradeHeightV3;
@@ -429,40 +426,148 @@ bool Currency::parseAmount(const std::string& str, uint64_t& amount) const {
     return Common::fromString(strAmount, amount);
 }
 
-Difficulty Currency::nextDifficulty(
-        uint8_t version,
-        uint32_t blockIndex,
-        std::vector<uint64_t> timestamps,
-        std::vector<Difficulty> cumulativeDifficulties
-        ) const {
-    Difficulty nextDiff;
-    if (version >= BLOCK_MAJOR_VERSION_4) {
-        nextDiff = nextDifficultyV4(version,timestamps,cumulativeDifficulties);
-    } else if (version == BLOCK_MAJOR_VERSION_3) {
-        nextDiff = nextDifficultyV3(version,timestamps,cumulativeDifficulties);
-    } else if (version == BLOCK_MAJOR_VERSION_2) {
-        nextDiff =  nextDifficultyV2(version,timestamps,cumulativeDifficulties);
-    } else {
-        nextDiff = nextDifficultyV1(version,timestamps,cumulativeDifficulties);
-    }
-    if(nextDiff < 1) {
-        nextDiff = 1;
-    }
-    return nextDiff;
+Difficulty
+Currency::nextDifficulty(uint8_t &version, uint32_t &blockIndex,
+                         std::vector<uint64_t> timestamps,
+                         std::vector<Difficulty> cumulativeDifficulties) const {
+  Difficulty nextDiff;
+  if (version >= BLOCK_MAJOR_VERSION_5) {
+    nextDiff =
+        nextDifficultyV5(timestamps, cumulativeDifficulties, m_difficultyTarget,
+                         difficultyWindowByBlockVersion(version), blockIndex,
+                         m_upgradeHeightV5, m_difficultyGuess);
+  } else if (version == BLOCK_MAJOR_VERSION_4) {
+    nextDiff = nextDifficultyV4(version, timestamps, cumulativeDifficulties);
+  } else if (version == BLOCK_MAJOR_VERSION_3) {
+    nextDiff = nextDifficultyV3(version, timestamps, cumulativeDifficulties);
+  } else if (version == BLOCK_MAJOR_VERSION_2) {
+    nextDiff = nextDifficultyV2(version, timestamps, cumulativeDifficulties);
+  } else {
+    nextDiff = nextDifficultyV1(version, timestamps, cumulativeDifficulties);
+  }
+  if (nextDiff < 1) {
+    nextDiff = 1;
+  }
+  return nextDiff;
 }
 
-// LWMA difficulty algorithm
+// LWMA-1 difficulty algorithm
+// Copyright (c) 2017-2018 Zawy, MIT License
+// https://github.com/zawy12/difficulty-algorithms/issues/3
+Difficulty
+Currency::nextDifficultyV5(std::vector<uint64_t> &timestamps,
+                           std::vector<uint64_t> &cumulative_difficulties,
+                           const uint64_t &T, const uint64_t &N,
+                           const uint64_t &height, const uint64_t &FORK_HEIGHT,
+                           const uint64_t &difficulty_guess) const {
+
+  //    logger(INFO,BLUE) << "Height: " << height << " TsSize: " <<
+  //    timestamps.size() << " CumulDsize: " << cumulative_difficulties.size();
+  //    logger(INFO,BLUE) << "Window: " << N << " Target: " << T << " Upgrade: "
+  //    << FORK_HEIGHT << " Guess: " << difficulty_guess;
+
+  assert(timestamps.size() == cumulative_difficulties.size() &&
+         timestamps.size() == N);
+
+  // Hard code D if there are not at least N+1 BLOCKS after fork (or genesis)
+  if (height >= FORK_HEIGHT && height < (FORK_HEIGHT + N - 1)) {
+    return difficulty_guess;
+  }
+  assert(timestamps.size() == N);
+
+  uint64_t L(0), next_D, i, this_timestamp(0), previous_timestamp(0), avg_D;
+  previous_timestamp = timestamps[0] - T + 1;
+
+  for (i = 1; i < N; i++) {
+    // Safely prevent out-of-sequence timestamps
+    if (timestamps[i] > previous_timestamp) {
+      this_timestamp = timestamps[i];
+    } else {
+      this_timestamp = previous_timestamp + 1;
+    }
+
+//    logger(INFO, CYAN) << "st[" << i
+//                       << "]: " << this_timestamp - previous_timestamp;
+
+    L += i * std::min(6 * T, this_timestamp - previous_timestamp);
+    previous_timestamp = this_timestamp;
+  }
+
+  if (L < 180 * T) { // 60*60/20
+    L = 180 * T;
+  }
+
+//  logger(INFO, GREEN)
+//      << "avgHR(11): "
+//      << static_cast<double>(
+//             (static_cast<double>(cumulative_difficulties.back()) -
+//              static_cast<double>(cumulative_difficulties[N - 12])) /
+//             T / 11)
+//      << " AvgHR(60): "
+//      << static_cast<double>(
+//             (static_cast<double>(cumulative_difficulties.back()) -
+//              static_cast<double>(cumulative_difficulties.front())) /
+//             T / 60);
+//  logger(INFO, BRIGHT_MAGENTA)
+//      << "avgST(11): "
+//      << static_cast<double>((static_cast<double>(timestamps.back()) -
+//                              static_cast<double>(timestamps[N - 12])) /
+//                             11)
+//      << " AvgST(60): "
+//      << static_cast<double>((static_cast<double>(timestamps.back()) -
+//                              static_cast<double>(timestamps.front())) /
+//                             60);
+
+  avg_D =
+      (cumulative_difficulties.back() - cumulative_difficulties.front()) / N;
+
+  // Prevent round off error for small D and overflow for large D.
+  if (avg_D > 7200000000 * T) { // 2000000*N*N = 7200000000 // (2000000*N*N*T)
+    next_D = (avg_D / (200 * L)) *
+             (362340 * T); // N*(N+1)*99 = 362340 // N*(N+1)*T*99
+  } else {
+    next_D = (avg_D * T * 362340) /
+             (200 * L); // N*(N+1)*99 = 362340 // (avg_D*N*(N+1)*T*99)
+  }
+
+  // Optional. Make all insignificant digits zero for easy reading.
+  i = 1000000000;
+  while (i > 1) {
+    if (next_D > i * 100) {
+      next_D = ((next_D + i / 2) / i) * i;
+      break;
+    } else {
+      i /= 10;
+    }
+  }
+
+  // Make least 2 digits = size of hash rate change last 11 BLOCKS if it's
+  // statistically significant. D=2540035 => hash rate 3.5x higher than D
+  // expected. Blocks coming 3.5x too fast.
+  if (next_D > 10000) { // should be 10000
+    uint64_t est_HR =
+        (10 * (11 * T + (timestamps[N] - timestamps[N - 11]) / 2)) /
+        (timestamps[N] - timestamps[N - 11] + 1);
+    if (est_HR > 5 && est_HR < 25) {
+      est_HR = 0;
+    }
+    est_HR = std::min(static_cast<uint64_t>(99), est_HR);
+    next_D = ((next_D + 50) / 100) * 100 + est_HR;
+  }
+
+  return next_D;
+}
+
+// LWMA difficulty algorithm Hard fork v4
 // Copyright (c) 2017-2018 Zawy
 // MIT license http://www.opensource.org/licenses/mit-license.php.
 // Tom Harding, Karbowanec, Masari, Bitcoin Gold, and Bitcoin Candy have contributed.
 // https://github.com/zawy12/difficulty-algorithms/issues/3
-
 // Zawy's LWMA difficulty algorithm implementation V4 (60 solvetimes limits -7T/7T)
 // (60 solvetimes - limits -7T/7T - adjust = 0.9909)
-Difficulty Currency::nextDifficultyV4(
-        uint8_t &version,
-        std::vector<uint64_t> timestamps,
-        std::vector<Difficulty> cumulativeDifficulties
+Difficulty Currency::nextDifficultyV4(uint8_t &version,
+        std::vector<uint64_t> &timestamps,
+        std::vector<Difficulty> &cumulativeDifficulties
         ) const {
     const size_t c_difficultyWindow = difficultyWindowByBlockVersion(version); // 61
     const int64_t c_difficultyTarget = static_cast<int64_t>(m_difficultyTarget);
@@ -504,10 +609,9 @@ Difficulty Currency::nextDifficultyV4(
 // Zawy's LWMA difficulty algorithm implementation V3
 // ( 59 solvetimes intead of 60 - adjust = 0.9909 - -5T/6T limits - potential exploit fixed )
 
-Difficulty Currency::nextDifficultyV3(
-        uint8_t &version,
-        std::vector<uint64_t> timestamps,
-        std::vector<Difficulty> cumulativeDifficulties
+Difficulty Currency::nextDifficultyV3(uint8_t &version,
+        std::vector<uint64_t> &timestamps,
+        std::vector<Difficulty> &cumulativeDifficulties
         ) const {
     size_t c_difficultyWindow = difficultyWindowByBlockVersion(version);
     int64_t c_difficultyTarget = static_cast<int64_t>(m_difficultyTarget);
@@ -552,10 +656,9 @@ Difficulty Currency::nextDifficultyV3(
 
 // First Zawy's LWMA difficulty algorithm implementation at block 69500
 // ( 59 solvetimes intead of 60 - adjust = 0.9912338056 - potential exploit due to uint solvetimes)
-Difficulty Currency::nextDifficultyV2(
-        uint8_t &version,
-        std::vector<uint64_t> timestamps,
-        std::vector<Difficulty> cumulativeDifficulties
+Difficulty Currency::nextDifficultyV2(uint8_t &version,
+        std::vector<uint64_t> &timestamps,
+        std::vector<Difficulty> &cumulativeDifficulties
         ) const {
     size_t c_difficultyWindow = difficultyWindowByBlockVersion(version);
     int64_t c_difficultyTarget = static_cast<int64_t>(m_difficultyTarget);
@@ -596,13 +699,12 @@ Difficulty Currency::nextDifficultyV2(
 }
 
 // Original difficulty algorithm implementation
-Difficulty Currency::nextDifficultyV1(
-        uint8_t &version,
-        std::vector<uint64_t> timestamps,
-        std::vector<Difficulty> cumulativeDifficulties
+Difficulty Currency::nextDifficultyV1(uint8_t &version,
+        std::vector<uint64_t> &timestamps,
+        std::vector<Difficulty> &cumulativeDifficulties
         ) const {
     size_t c_difficultyWindow = difficultyWindowByBlockVersion(version);
-    size_t c_difficultyCut = difficultyCutByBlockVersion(version);
+    size_t c_difficultyCut = CryptoNote::parameters::DIFFICULTY_CUT;
     assert(c_difficultyWindow >= 2);
     if (timestamps.size() > c_difficultyWindow) {
         timestamps.resize(c_difficultyWindow);
@@ -639,24 +741,21 @@ Difficulty Currency::nextDifficultyV1(
     return (low + timeSpan - 1) / timeSpan;
 }
 
-bool Currency::checkProofOfWorkV1(Crypto::cn_context& context, const CachedBlock& block, Difficulty currentDifficulty) const {
+bool Currency::checkProofOfWorkV1(const CachedBlock& block, Difficulty currentDifficulty) const {
     if (BLOCK_MAJOR_VERSION_1 != block.getBlock().majorVersion) {
         return false;
     }
-
-    return check_hash(block.getBlockLongHash(context), currentDifficulty);
+    return check_hash(block.getBlockLongHash(), currentDifficulty);
 }
 
-bool Currency::checkProofOfWorkV2(Crypto::cn_context& context, const CachedBlock& cachedBlock, Difficulty currentDifficulty) const {
+bool Currency::checkProofOfWorkV2(const CachedBlock& cachedBlock, Difficulty currentDifficulty) const {
     const auto& block = cachedBlock.getBlock();
     if (block.majorVersion < BLOCK_MAJOR_VERSION_2) {
         return false;
     }
-
-    if (!check_hash(cachedBlock.getBlockLongHash(context), currentDifficulty)) {
+    if (!check_hash(cachedBlock.getBlockLongHash(), currentDifficulty)) {
         return false;
     }
-
     TransactionExtraMergeMiningTag mmTag;
     if (!getMergeMiningTagFromExtra(block.parentBlock.baseTransaction.extra, mmTag)) {
         logger(ERROR) << "merge mining tag wasn't found in extra of the parent block miner transaction";
@@ -668,8 +767,7 @@ bool Currency::checkProofOfWorkV2(Crypto::cn_context& context, const CachedBlock
     }
 
     Crypto::Hash auxBlocksMerkleRoot;
-    Crypto::tree_hash_from_branch(block.parentBlock.blockchainBranch.data(), block.parentBlock.blockchainBranch.size(),
-                                  cachedBlock.getAuxiliaryBlockHeaderHash(), &cachedGenesisBlock->getBlockHash(), auxBlocksMerkleRoot);
+    Crypto::tree_hash_from_branch(block.parentBlock.blockchainBranch.data(), block.parentBlock.blockchainBranch.size(),cachedBlock.getAuxiliaryBlockHeaderHash(), &cachedGenesisBlock->getBlockHash(), auxBlocksMerkleRoot);
 
     if (auxBlocksMerkleRoot != mmTag.merkleRoot) {
         logger(ERROR, BRIGHT_YELLOW) << "Aux block hash wasn't found in merkle tree";
@@ -679,15 +777,15 @@ bool Currency::checkProofOfWorkV2(Crypto::cn_context& context, const CachedBlock
     return true;
 }
 
-bool Currency::checkProofOfWork(Crypto::cn_context& context, const CachedBlock& block, Difficulty currentDiffic) const {
+bool Currency::checkProofOfWork(const CachedBlock& block, Difficulty currentDiffic) const {
     switch (block.getBlock().majorVersion) {
     case BLOCK_MAJOR_VERSION_1:
-        return checkProofOfWorkV1(context, block, currentDiffic);
-
+        return checkProofOfWorkV1(block, currentDiffic);
     case BLOCK_MAJOR_VERSION_2:
     case BLOCK_MAJOR_VERSION_3:
     case BLOCK_MAJOR_VERSION_4:
-        return checkProofOfWorkV2(context, block, currentDiffic);
+    case BLOCK_MAJOR_VERSION_5:
+        return checkProofOfWorkV2(block, currentDiffic);
     }
 
     logger(ERROR, BRIGHT_RED) << "Unknown block major version: " << block.getBlock().majorVersion << "." << block.getBlock().minorVersion;
@@ -726,17 +824,24 @@ Currency::Currency(Currency&& currency) :
     m_timestampCheckWindow(currency.m_timestampCheckWindow),
     m_timestampCheckWindowV4(currency.m_timestampCheckWindowV4),
     m_blockFutureTimeLimit(currency.m_blockFutureTimeLimit),
+    m_blockFutureTimeLimitV5(currency.m_blockFutureTimeLimitV5),
     m_moneySupply(currency.m_moneySupply),
     m_emissionSpeedFactor(currency.m_emissionSpeedFactor),
     m_rewardBlocksWindow(currency.m_rewardBlocksWindow),
     m_blockGrantedFullRewardZone(currency.m_blockGrantedFullRewardZone),
     m_minerTxBlobReservedSize(currency.m_minerTxBlobReservedSize),
+    m_minMixin(currency.m_minMixin),
+    m_maxMixin(currency.m_maxMixin),
+    m_mandatoryMixinBlockVersion(currency.m_mandatoryMixinBlockVersion),
     m_numberOfDecimalPlaces(currency.m_numberOfDecimalPlaces),
     m_coin(currency.m_coin),
     m_mininumFee(currency.m_mininumFee),
     m_defaultDustThreshold(currency.m_defaultDustThreshold),
     m_difficultyTarget(currency.m_difficultyTarget),
-    m_testnet_DifficultyTarget(currency.m_testnet_DifficultyTarget),
+    m_difficultyGuess(currency.m_difficultyGuess),
+    m_difficultyGuess_V5(currency.m_difficultyGuess_V5),
+    m_testnetDifficultyTarget(currency.m_testnetDifficultyTarget),
+    m_testnetDifficultyGuess(currency.m_testnetDifficultyGuess),
     m_difficultyWindow(currency.m_difficultyWindow),
     m_difficultyLag(currency.m_difficultyLag),
     m_difficultyCut(currency.m_difficultyCut),
@@ -753,9 +858,11 @@ Currency::Currency(Currency&& currency) :
     m_upgradeHeightV2(currency.m_upgradeHeightV2),
     m_upgradeHeightV3(currency.m_upgradeHeightV3),
     m_upgradeHeightV4(currency.m_upgradeHeightV4),
+    m_upgradeHeightV5(currency.m_upgradeHeightV5),
     m_testnetUpgradeHeightV2(currency.m_testnetUpgradeHeightV2),
     m_testnetUpgradeHeightV3(currency.m_testnetUpgradeHeightV3),
     m_testnetUpgradeHeightV4(currency.m_testnetUpgradeHeightV4),
+    m_testnetUpgradeHeightV5(currency.m_testnetUpgradeHeightV5),
     m_upgradeVotingThreshold(currency.m_upgradeVotingThreshold),
     m_upgradeVotingWindow(currency.m_upgradeVotingWindow),
     m_upgradeWindow(currency.m_upgradeWindow),
@@ -763,9 +870,6 @@ Currency::Currency(Currency&& currency) :
     m_blockIndexesFileName(currency.m_blockIndexesFileName),
     m_txPoolFileName(currency.m_txPoolFileName),
     m_testnet(currency.m_testnet),
-    m_minMixin(currency.m_minMixin),
-    m_maxMixin(currency.m_maxMixin),
-    m_mandatoryMixinBlockVersion(currency.m_mandatoryMixinBlockVersion),
     genesisBlockTemplate(std::move(currency.genesisBlockTemplate)),
     cachedGenesisBlock(new CachedBlock(genesisBlockTemplate)),
     logger(currency.logger) {
@@ -781,6 +885,7 @@ CurrencyBuilder::CurrencyBuilder(Logging::ILogger& log) : m_currency(log) {
     timestampCheckWindow(parameters::BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW);
     timestampCheckWindowV4(parameters::BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW_V4);
     blockFutureTimeLimit(parameters::CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT);
+    blockFutureTimeLimitV5(parameters::CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT_V5);
 
     moneySupply(parameters::MONEY_SUPPLY);
     emissionSpeedFactor(parameters::EMISSION_SPEED_FACTOR);
@@ -801,6 +906,9 @@ CurrencyBuilder::CurrencyBuilder(Logging::ILogger& log) : m_currency(log) {
 
     difficultyTarget(parameters::DIFFICULTY_TARGET);
     testnetDifficultyTarget(parameters::TESTNET_DIFFICULTY_TARGET);
+    difficultyGuess(parameters::DIFFICULTY_GUESS_V5);
+    difficultyGuess_V5(parameters::DIFFICULTY_GUESS_V5);
+    testnetDifficultyGuess(parameters::TESTNET_DIFFICULTY_GUESS);
 
     difficultyWindow(parameters::DIFFICULTY_WINDOW);
     difficultyLag(parameters::DIFFICULTY_LAG);
@@ -824,10 +932,12 @@ CurrencyBuilder::CurrencyBuilder(Logging::ILogger& log) : m_currency(log) {
     upgradeHeightV2(parameters::UPGRADE_HEIGHT_V2);
     upgradeHeightV3(parameters::UPGRADE_HEIGHT_V3);
     upgradeHeightV4(parameters::UPGRADE_HEIGHT_V4);
+    upgradeHeightV5(parameters::UPGRADE_HEIGHT_V5);
 
     testnetUpgradeHeightV2(parameters::TESTNET_UPGRADE_HEIGHT_V2);
     testnetUpgradeHeightV3(parameters::TESTNET_UPGRADE_HEIGHT_V3);
     testnetUpgradeHeightV4(parameters::TESTNET_UPGRADE_HEIGHT_V4);
+    testnetUpgradeHeightV5(parameters::TESTNET_UPGRADE_HEIGHT_V5);
 
     upgradeVotingThreshold(parameters::UPGRADE_VOTING_THRESHOLD);
     upgradeVotingWindow(parameters::UPGRADE_VOTING_WINDOW);

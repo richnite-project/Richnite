@@ -1,19 +1,7 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
-//
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
+// Copyright (c) 2017-2019, The Iridium developers
 // You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// If not, see <http://www.gnu.org/licenses/>.
 
 #include "CachedBlock.h"
 #include <Common/Varint.h>
@@ -57,25 +45,29 @@ const Crypto::Hash& CachedBlock::getBlockHash() const {
   return blockHash.get();
 }
 
-const Crypto::Hash& CachedBlock::getBlockLongHash(cn_context& cryptoContext) const {
+const Crypto::Hash& CachedBlock::getBlockLongHash() const {
     if (!blockLongHash.is_initialized()) {
         if (block.majorVersion == BLOCK_MAJOR_VERSION_1) {
             const auto& rawHashingBlock = getBlockHashingBinaryArray();
             blockLongHash = Hash();
-            cn_slow_hash_v6(cryptoContext, rawHashingBlock.data(), rawHashingBlock.size(), blockLongHash.get());
+            cn_slow_hash_v0(rawHashingBlock.data(), rawHashingBlock.size(), blockLongHash.get());
         } else if (block.majorVersion == BLOCK_MAJOR_VERSION_2) {
             const auto& rawHashingBlock = getParentBlockHashingBinaryArray(true);
             blockLongHash = Hash();
-            cn_slow_hash_v6(cryptoContext, rawHashingBlock.data(), rawHashingBlock.size(), blockLongHash.get());
+            cn_slow_hash_v0(rawHashingBlock.data(), rawHashingBlock.size(), blockLongHash.get());
         } else if (block.majorVersion == BLOCK_MAJOR_VERSION_3) {
             const auto& rawHashingBlock = getParentBlockHashingBinaryArray(true);
             blockLongHash = Hash();
-            cn_slow_hash_v6(cryptoContext, rawHashingBlock.data(), rawHashingBlock.size(), blockLongHash.get());
+            cn_slow_hash_v0(rawHashingBlock.data(), rawHashingBlock.size(), blockLongHash.get());
         } else if (block.majorVersion == BLOCK_MAJOR_VERSION_4) {
             const auto& rawHashingBlock = getParentBlockHashingBinaryArray(true);
             blockLongHash = Hash();
-            cn_lite_slow_hash_v1(cryptoContext, rawHashingBlock.data(), rawHashingBlock.size(), blockLongHash.get());
-        } else {
+            cn_lite_slow_hash_v1(rawHashingBlock.data(), rawHashingBlock.size(), blockLongHash.get());
+        } else if (block.majorVersion >= BLOCK_MAJOR_VERSION_5) {
+            const auto& rawHashingBlock = getParentBlockHashingBinaryArray(true);
+            blockLongHash = Hash();
+            cn_slow_hash_v2(rawHashingBlock.data(), rawHashingBlock.size(), blockLongHash.get());
+        } else{
             throw std::runtime_error("Unknown block major version.");
         }
     }

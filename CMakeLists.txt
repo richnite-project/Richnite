@@ -1,25 +1,48 @@
-cmake_minimum_required(VERSION 2.8.6)
+cmake_minimum_required(VERSION 3.8)
+project(iridium VERSION 4.1.0)
 
-#Set build version
-set(VERSION_MAJOR "4")
-set(VERSION_MINOR "0.2 ${CMAKE_BUILD_TYPE}")
-
+#----------------#
+# Global options #
+#----------------#
+message(STATUS "------- Starting configuration ---------")
+# Enabling C++11
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_EXTENSIONS OFF)
+# Default build type
+set(DEFAULT_BUILD_TYPE "Release")
+# default static build without tests
+set(STATIC ON CACHE BOOL "Link libraries statically")
+# Organize targets into folders
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE TYPE INTERNAL)
-set (CMAKE_CXX_STANDARD 11)
-set(CMAKE_SKIP_PACKAGE_ALL_DEPENDENCY ON)
 set(CMAKE_SUPPRESS_REGENERATION ON)
+set(CMAKE_SKIP_PACKAGE_ALL_DEPENDENCY ON)
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
+set(COMMIT_ID_IN_VERSION ON CACHE BOOL "Include git commit # in Version")
 set(STATIC ON CACHE BOOL "Link libraries statically")
 set(BUILD_TESTS OFF CACHE BOOL "build tests")
 
-if(BUILD_TESTS)
-    enable_testing()
-else()
-    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake ${CMAKE_CURRENT_BINARY_DIR})
+#----------------#
+# Cooking stuffs #
+#----------------#
+#get rid of "QT_QMAKE_EXECUTABLE not used by the project" in QtCreator
+set(ignoreMe "${QT_QMAKE_EXECUTABLE}")
+
+# Handle build types and set possible values of build type for cmake-gui
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+  message(STATUS "Setting build type to '${DEFAULT_BUILD_TYPE}' as none was specified.")
+  set(CMAKE_BUILD_TYPE "${DEFAULT_BUILD_TYPE}" CACHE STRING "Choose the type of build." FORCE)
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
-project(iridium)
+# Set version
+find_package(BuildVersion REQUIRED)
+# Threads
+find_package(Threads)
 
+#----------#
+# includes #
+#----------#
+include_directories(include src external "${CMAKE_CURRENT_BINARY_DIR}/version")
 include_directories(include
     src
     external
@@ -30,9 +53,14 @@ if(APPLE)
     enable_language(ASM)
 endif()
 
+
+#-----------#
+# Platforms #
+#-----------#
 if(MSVC)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/Windows)
 elseif(APPLE)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET 10.10)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/OSX)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/Posix)
 else()
@@ -41,6 +69,9 @@ else()
 endif()
 
 set(STATIC ${MSVC} CACHE BOOL "Link libraries statically")
+
+
+# // todo clean this mess...
 
 if(MSVC)
     add_definitions("/bigobj /MP /W3 /GS- /D_CRT_SECURE_NO_WARNINGS /wd4996 /wd4345 /D_WIN32_WINNT=0x0600 /DWIN32_LEAN_AND_MEAN /DGTEST_HAS_TR1_TUPLE=0 /D_VARIADIC_MAX=8 /D__SSE4_1__")
@@ -64,7 +95,7 @@ else()
         set(ARCH_FLAG "-march=${ARCH}")
     endif()
     set(WARNINGS "-Wall -Wextra -Wpointer-arith -Wundef -Wvla -Wwrite-strings -Werror -Wno-error=extra -Wno-error=unused-function -Wno-error=deprecated-declarations -Wno-error=sign-compare -Wno-error=strict-aliasing -Wno-error=type-limits -Wno-unused-parameter -Wno-error=unused-variable -Wno-error=undef -Wno-error=uninitialized -Wno-error=unused-result")
-    if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
+    if(CMAKE_C_COMPILER_ID STREQUAL "Clang" OR CMAKE_C_COMPILER_ID STREQUAL "AppleClang")
         set(WARNINGS "${WARNINGS} -Wno-error=mismatched-tags -Wno-error=null-conversion -Wno-overloaded-shift-op-parentheses -Wno-error=shift-count-overflow -Wno-error=tautological-constant-out-of-range-compare -Wno-error=unused-private-field -Wno-error=unneeded-internal-declaration -Wno-error=unused-function -Wno-error=missing-braces -Wno-unused-lambda-capture -Wno-exceptions -Wno-unknown-pragmas")
     else()
         set(WARNINGS "${WARNINGS} -Wlogical-op -Wno-error=maybe-uninitialized -Wno-error=clobbered -Wno-error=unused-but-set-variable")
@@ -101,13 +132,17 @@ else()
         set(DEBUG_FLAGS "-g3 -O0 -fno-omit-frame-pointer")
     endif()
 
+    if(CMAKE_C_COMPILER_ID STREQUAL "Clang" OR CMAKE_C_COMPILER_ID STREQUAL "AppleClang")
+        set(DEBUG_FLAGS "${DEBUG_FLAGS} -Wno-delete-non-virtual-dtor")
+    endif()
+
     # release flags
     set(RELEASE_FLAGS "-Ofast -DNDEBUG -Wno-unused-variable -Wno-uninitialized -Wno-unused-function -Wno-sign-compare")
     if(CMAKE_C_COMPILER_ID STREQUAL "GNU" AND NOT (CMAKE_C_COMPILER_VERSION VERSION_LESS 4.8))
         set(RELEASE_FLAGS "${RELEASE_FLAGS} -Wno-strict-aliasing -Wno-unused-but-set-variable")
     endif()
-    if(CMAKE_C_COMPILER_ID STREQUAL "Clang")
-        set(RELEASE_FLAGS "${RELEASE_FLAGS} -Wno-delete-non-virtual-dtor -Wno-unused-private-field -Wno-unused-lambda-capture -Wno-exceptions")
+    if(CMAKE_C_COMPILER_ID STREQUAL "Clang" OR CMAKE_C_COMPILER_ID STREQUAL "AppleClang")
+        set(RELEASE_FLAGS "${RELEASE_FLAGS} -Wno-undef -Wno-delete-non-virtual-dtor -Wno-unused-private-field -Wno-unused-lambda-capture -Wno-exceptions")
     endif()
 
     if(NOT APPLE)
@@ -155,56 +190,34 @@ elseif(NOT MSVC)
     set(Boost_LIBRARIES "${Boost_LIBRARIES};rt")
 endif()
 
-set(COMMIT_ID_IN_VERSION ON CACHE BOOL "Include commit ID in version")
-file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/version")
 
-if (NOT COMMIT_ID_IN_VERSION)
-    set(VERSION "${VERSION}-unknown")
-    set(COMMIT_ID "unknown")
-    message(STATUS "Version : ${VERSION}")
-    message(STATUS "Revision : ${COMMIT_ID}")
-    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in" "${CMAKE_CURRENT_BINARY_DIR}/version/version.h")
-    add_custom_target(version ALL)
-elseif(DEFINED COMMIT_ID_IN_VERSION)
-    find_package(Git QUIET)
-    if(Git_FOUND OR GIT_FOUND)
-        message(STATUS "Found Git: ${GIT_EXECUTABLE}")
-        execute_process(
-            COMMAND git rev-parse --abbrev-ref HEAD  # Get the current branch
-            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-            OUTPUT_VARIABLE GIT_BRANCH
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-            )
+#---------#
+# Summary #
+#---------#
+message(STATUS " ")
+message(STATUS "========== building ${PROJECT_NAME} Core version : ${PROJECT_VERSION} build ${PROJECT_VERSION_TWEAK} ${CMAKE_BUILD_TYPE} =======")
+message(STATUS "Compiler : ${CMAKE_CXX_COMPILER_ID} version ${CMAKE_CXX_COMPILER_VERSION}")
+message(STATUS "Version : ${VERSION}")
+message(STATUS "Revision : ${COMMIT_ID}")
+message(STATUS "Boost version : ${Boost_LIB_VERSION}")
+message(STATUS "Link libraries statically : ${STATIC}" )
+message(STATUS "Portable : ${PORTABLE}" )
+message(STATUS "Build tests : " ${BUILD_TESTS})
+message(STATUS "----------------------------------------------------------")
 
-        execute_process(
-            COMMAND git log -1 --format=%h # Get latest commit hash
-            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-            OUTPUT_VARIABLE COMMIT_ID
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-            )
-    else()
-        message(STATUS "Git not found !")
-        set(GIT_BRANCH "unknown")
-        set(COMMIT_ID "unknown")
-    endif()
-    set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}")
-    message(STATUS "--------------------- Iridium Core build details ----------------------------")
-    message(STATUS "Build : ${CMAKE_BUILD_TYPE}")
-    message(STATUS "Compiler : ${CMAKE_C_COMPILER_ID} version ${CMAKE_CXX_COMPILER_VERSION}")
-    message(STATUS "Branch : ${GIT_BRANCH}")
-    message(STATUS "Version : ${VERSION}")
-    message(STATUS "Revision : ${COMMIT_ID}")
-    message(STATUS "Boost version : ${Boost_LIB_VERSION}")
-    message(STATUS "Link libraries statically : ${STATIC}" )
-    message(STATUS "Portable : ${PORTABLE}" )
-    message(STATUS "Compile tests : " ${BUILD_TESTS})
-    message(STATUS "----------------------------------------------------------")
-    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in" "${CMAKE_CURRENT_BINARY_DIR}/version/version.h")
-    add_custom_target(version ALL)
-endif()
+message(STATUS "C Flags ${CMAKE_C_FLAGS_RELEASE}")
+message(STATUS "CXX Flags ${CMAKE_CXX_FLAGS_RELEASE}")
+
+#----------#
+# sources  #
+#----------#
 
 add_subdirectory(external)
 add_subdirectory(src)
+
 if(BUILD_TESTS)
-    add_subdirectory(tests)
+  add_subdirectory(tests)
+else()
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake ${CMAKE_CURRENT_BINARY_DIR})
 endif()
+

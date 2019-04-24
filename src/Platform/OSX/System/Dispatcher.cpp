@@ -1,19 +1,7 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
-//
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
+// Copyright (c) 2017-2019, The Iridium developers
 // You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// If not, see <http://www.gnu.org/licenses/>.
 
 #include "Dispatcher.h"
 #include <cassert>
@@ -100,6 +88,7 @@ Dispatcher::Dispatcher() : lastCreatedTimer(0) {
     }
 
     auto result = close(kqueue);
+    if (result) {}
     assert(result == 0);
   }
 
@@ -125,6 +114,7 @@ Dispatcher::~Dispatcher() {
   }
   
   auto result = close(kqueue);
+  if (result) {}
   assert(result != -1);
   result = pthread_mutex_destroy(reinterpret_cast<pthread_mutex_t*>(this->mutex));
   assert(result != -1);
@@ -165,7 +155,7 @@ void Dispatcher::dispatch() {
     }
 
     struct kevent event;
-    int count = kevent(kqueue, NULL, 0, &event, 1, NULL);
+    int count = kevent(kqueue, nullptr, 0, &event, 1, nullptr);
     if (count == 1) {
       if (event.flags & EV_ERROR) {
         continue;
@@ -174,7 +164,7 @@ void Dispatcher::dispatch() {
       if (event.filter == EVFILT_USER && event.ident == 0) {
         struct kevent event;
         EV_SET(&event, 0, EVFILT_USER, EV_ADD | EV_DISABLE, NOTE_FFNOP, 0, NULL);
-        if (kevent(kqueue, &event, 1, NULL, 0, NULL) == -1) {
+        if (kevent(kqueue, &event, 1, nullptr, 0, nullptr) == -1) {
           throw std::runtime_error("Dispatcher::dispatch, kevent failed, " + lastErrorMessage());
         }
 
@@ -183,7 +173,7 @@ void Dispatcher::dispatch() {
 
       if (event.filter == EVFILT_WRITE) {
         event.flags = EV_DELETE | EV_DISABLE;
-        kevent(kqueue, &event, 1, NULL, 0, NULL); // ignore error here
+        kevent(kqueue, &event, 1, nullptr, 0, nullptr); // ignore error here
       }
 
       context = static_cast<OperationContext*>(event.udata)->context;
@@ -265,7 +255,7 @@ void Dispatcher::remoteSpawn(std::function<void()>&& procedure) {
     remoteSpawned = true;
     struct kevent event;
     EV_SET(&event, 0, EVFILT_USER, EV_ADD | EV_ENABLE, NOTE_FFCOPY | NOTE_TRIGGER, 0, NULL);
-    if (kevent(kqueue, &event, 1, NULL, 0, NULL) == -1) {
+    if (kevent(kqueue, &event, 1, nullptr, 0, nullptr) == -1) {
       throw std::runtime_error("Dispatcher::remoteSpawn, kevent failed, " + lastErrorMessage());
     };
   }
@@ -392,7 +382,7 @@ void Dispatcher::pushTimer(int timer) {
   timers.push(timer);
 }
 
-void Dispatcher::contextProcedure(void* ucontext) {
+[[ noreturn ]] void Dispatcher::contextProcedure(void* ucontext) {
   assert(firstReusableContext == nullptr);
   NativeContext context;
   context.uctx = ucontext;
@@ -452,7 +442,7 @@ void Dispatcher::contextProcedure(void* ucontext) {
   }
 }
 
-void Dispatcher::contextProcedureStatic(intptr_t context) {
+[[ noreturn ]] void Dispatcher::contextProcedureStatic(intptr_t context) {
   ContextMakingData* makingContextData = reinterpret_cast<ContextMakingData*>(context);
   makingContextData->dispatcher->contextProcedure(makingContextData->uctx);
 }

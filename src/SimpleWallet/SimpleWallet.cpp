@@ -1,19 +1,7 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
-//
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
+// Copyright (c) 2017-2019, The Iridium developers
 // You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// If not, see <http://www.gnu.org/licenses/>.
 
 #include "SimpleWallet.h"
 
@@ -468,13 +456,13 @@ bool simple_wallet::exit(const std::vector<std::string> &args) {
 }
 
 simple_wallet::simple_wallet(System::Dispatcher& dispatcher, const CryptoNote::Currency& currency, Logging::LoggerManager& log) :
-  m_dispatcher(dispatcher),
-  m_daemon_port(0), 
-  m_currency(currency), 
+  m_daemon_port(0),
+  m_initResultPromise(nullptr),
+  m_currency(currency),
   logManager(log),
+  m_dispatcher(dispatcher),
   logger(log, "simplewallet"),
   m_refresh_progress_reporter(*this), 
-  m_initResultPromise(nullptr),
   m_walletSynchronized(false) {
   //m_consoleHandler.setHandler("start_mining", boost::bind(&simple_wallet::start_mining, this, _1), "start_mining [<number_of_threads>] - Start mining in daemon");
   //m_consoleHandler.setHandler("stop_mining", boost::bind(&simple_wallet::stop_mining, this, _1), "Stop mining in daemon");
@@ -544,7 +532,7 @@ bool simple_wallet::init(const boost::program_options::variables_map& vm) {
       return false;
     }
 
-    std::cout << "Specify wallet file name (e.g., wallet.bin).\n";
+    std::cout << "Specify wallet file name (e.g., mywallet.wallet).\n";
     std::string userInput;
     do {
       std::cout << "Wallet file name: ";

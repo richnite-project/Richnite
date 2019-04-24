@@ -1,19 +1,7 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
-//
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
+// Copyright (c) 2017-2019, The Iridium developers
 // You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// If not, see <http://www.gnu.org/licenses/>.
 
 #include "Miner.h"
 
@@ -100,11 +88,10 @@ void Miner::runWorkers(BlockMiningParameters blockMiningParameters, size_t threa
 void Miner::workerFunc(const BlockTemplate& blockTemplate, Difficulty difficulty, uint32_t nonceStep) {
   try {
     BlockTemplate block = blockTemplate;
-    Crypto::cn_context cryptoContext;
 
     while (m_state == MiningState::MINING_IN_PROGRESS) {
       CachedBlock cachedBlock(block);
-      Crypto::Hash hash = cachedBlock.getBlockLongHash(cryptoContext);
+      Crypto::Hash hash = cachedBlock.getBlockLongHash();
       if (check_hash(hash, difficulty)) {
         m_logger(Logging::INFO) << "Found block for difficulty " << difficulty;
 
@@ -116,7 +103,8 @@ void Miner::workerFunc(const BlockTemplate& blockTemplate, Difficulty difficulty
         m_block = block;
         return;
       }
-
+      // update TS at every nonce
+      block.timestamp = static_cast<uint64_t>(time(nullptr));
       block.nonce += nonceStep;
     }
   } catch (std::exception& e) {

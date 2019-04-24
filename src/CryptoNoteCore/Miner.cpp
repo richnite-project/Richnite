@@ -1,19 +1,7 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
-//
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
+// Copyright (c) 2017-2019, The Iridium developers
 // You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// If not, see <http://www.gnu.org/licenses/>.
 
 #include "Miner.h"
 
@@ -123,7 +111,7 @@ namespace CryptoNote
   bool miner::on_idle()
   {
     m_update_block_template_interval.call([&](){
-      if(is_mining()) 
+      if(is_mining())
         request_block_template();
       return true;
     });
@@ -162,7 +150,7 @@ namespace CryptoNote
         std::cout << "hashrate: " << std::setprecision(4) << std::fixed << hr << ENDL;
       }
     }
-    
+
     m_last_hr_merge_time = millisecondsSinceEpoch();
     m_hashes = 0;
   }
@@ -171,8 +159,8 @@ namespace CryptoNote
     if (!config.extraMessages.empty()) {
       std::string buff;
       if (!Common::loadFileToString(config.extraMessages, buff)) {
-        logger(ERROR, BRIGHT_RED) << "Failed to load file with extra messages: " << config.extraMessages; 
-        return false; 
+        logger(ERROR, BRIGHT_RED) << "Failed to load file with extra messages: " << config.extraMessages;
+        return false;
       }
       std::vector<std::string> extra_vec;
       boost::split(extra_vec, buff, boost::is_any_of("\n"), boost::token_compress_on );
@@ -217,7 +205,7 @@ namespace CryptoNote
   }
   //-----------------------------------------------------------------------------------------------------
   bool miner::start(const AccountPublicAddress& adr, size_t threads_count)
-  {   
+  {
     if (is_mining()) {
       logger(ERROR) << "Starting miner but it's already started";
       return false;
@@ -247,7 +235,7 @@ namespace CryptoNote
     logger(INFO) << "Mining has started with " << threads_count << " threads, good luck!";
     return true;
   }
-  
+
   //-----------------------------------------------------------------------------------------------------
   uint64_t miner::get_speed()
   {
@@ -256,9 +244,9 @@ namespace CryptoNote
     else
       return 0;
   }
-  
+
   //-----------------------------------------------------------------------------------------------------
-  void miner::send_stop_signal() 
+  void miner::send_stop_signal()
   {
     m_stop = true;
   }
@@ -278,7 +266,7 @@ namespace CryptoNote
     return true;
   }
   //-----------------------------------------------------------------------------------------------------
-  bool miner::find_nonce_for_given_block(Crypto::cn_context &context, BlockTemplate& bl, const Difficulty& diffic) {
+  bool miner::find_nonce_for_given_block(BlockTemplate& bl, const Difficulty& diffic) {
 
     unsigned nthreads = std::thread::hardware_concurrency();
 
@@ -290,7 +278,6 @@ namespace CryptoNote
 
       for (unsigned i = 0; i < nthreads; ++i) {
         threads[i] = std::async(std::launch::async, [&, i]() {
-          Crypto::cn_context localctx;
           Crypto::Hash h;
 
           BlockTemplate lb(bl); // copy to local block
@@ -300,7 +287,7 @@ namespace CryptoNote
 
             CachedBlock cb(lb);
             try {
-              h = cb.getBlockLongHash(localctx);
+              h = cb.getBlockLongHash();
             } catch (std::exception&) {
               return;
             }
@@ -328,7 +315,7 @@ namespace CryptoNote
         Crypto::Hash h;
         CachedBlock cb(bl);
         try {
-          h = cb.getBlockLongHash(context);
+          h = cb.getBlockLongHash();
         } catch (std::exception&) {
           return false;
         }
@@ -376,7 +363,6 @@ namespace CryptoNote
     uint32_t nonce = m_starter_nonce + th_local_index;
     Difficulty local_diff = 0;
     uint32_t local_template_ver = 0;
-    Crypto::cn_context context;
     BlockTemplate b;
 
     while(!m_stop)
@@ -410,7 +396,7 @@ namespace CryptoNote
       CachedBlock cb(b);
       if (!m_stop) {
         try {
-          h = cb.getBlockLongHash(context);
+          h = cb.getBlockLongHash();
         } catch (std::exception& e) {
           logger(ERROR) << "getBlockLongHash failed: " << e.what();
           m_stop = true;

@@ -1,19 +1,7 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
-//
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
+// Copyright (c) 2017-2019, The Iridium developers
 // You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// If not, see <http://www.gnu.org/licenses/>.
 
 #include <boost/optional.hpp>
 #include <boost/program_options.hpp>
@@ -47,16 +35,16 @@ using namespace CryptoNote;
 #endif
 
 namespace {
-  const command_line::arg_descriptor<std::string, true> arg_ip           = {"ip", "set ip"};
-  const command_line::arg_descriptor<uint16_t>      arg_port = { "port", "set port" };
-  const command_line::arg_descriptor<uint16_t>      arg_rpc_port           = {"rpc_port", "set rpc port"};
-  const command_line::arg_descriptor<uint32_t, true> arg_timeout         = {"timeout", "set timeout"};
-  const command_line::arg_descriptor<std::string> arg_priv_key           = {"private_key", "private key to subscribe debug command", "", true};
-  const command_line::arg_descriptor<uint64_t>    arg_peer_id            = {"peer_id", "peer_id if known(if not - will be requested)", 0};
-  const command_line::arg_descriptor<bool>        arg_generate_keys      = {"generate_keys_pair", "generate private and public keys pair"};
-  const command_line::arg_descriptor<bool>        arg_request_stat_info  = {"request_stat_info", "request statistics information"};
-  const command_line::arg_descriptor<bool>        arg_request_net_state  = {"request_net_state", "request network state information (peer list, connections count)"};
-  const command_line::arg_descriptor<bool>        arg_get_daemon_info    = {"rpc_get_daemon_info", "request daemon state info vie rpc (--rpc_port option should be set ).", "", true};
+  const command_line::arg_descriptor<std::string, true>     arg_ip                  = {"ip", "set ip"};
+  const command_line::arg_descriptor<uint16_t>              arg_port                = {"port", "set port" };
+  const command_line::arg_descriptor<uint16_t>              arg_rpc_port            = {"rpc_port", "set rpc port"};
+  const command_line::arg_descriptor<uint32_t, true>        arg_timeout             = {"timeout", "set timeout"};
+  const command_line::arg_descriptor<std::string>           arg_priv_key            = {"private_key", "private key to subscribe debug command", "", true};
+  const command_line::arg_descriptor<uint64_t>              arg_peer_id             = {"peer_id", "peer_id if known(if not - will be requested)", 0};
+  const command_line::arg_descriptor<bool>                  arg_generate_keys       = {"generate_keys_pair", "generate private and public keys pair"};
+  const command_line::arg_descriptor<bool>                  arg_request_stat_info   = {"request_stat_info", "request statistics information"};
+  const command_line::arg_descriptor<bool>                  arg_request_net_state   = {"request_net_state", "request network state information (peer list, connections count)"};
+  const command_line::arg_descriptor<bool>                  arg_get_daemon_info     = {"rpc_get_daemon_info", "request daemon state info vie rpc (--rpc_port option should be set ).", "", true};
 }
 
 struct response_schema {
@@ -264,7 +252,7 @@ bool handle_request_stat(po::variables_map& vm, PeerIdType peer_id) {
 
     proof_of_trust pot;
     pot.peer_id = peer_id;
-    pot.time = time(NULL);
+    pot.time = static_cast<uint64_t>(time(nullptr));
     Crypto::PublicKey pubk;
     Common::podFromHex(P2P_STAT_TRUSTED_PUB_KEY, pubk);
     Crypto::Hash h = get_proof_of_trust_hash(pot);

@@ -1,25 +1,14 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
-//
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
+// Copyright (c) 2017-2019, The Iridium developers
 // You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 
 #include <cstddef>
 #include <cstdint>
 #include <limits>
+#include <list>
 
 namespace CryptoNote {
 namespace parameters {
@@ -29,7 +18,8 @@ const size_t   CRYPTONOTE_MAX_BLOCK_BLOB_SIZE                = 500000000;
 const size_t   CRYPTONOTE_MAX_TX_SIZE                        = 1000000000;
 const uint64_t CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX       = 0x16fa;
 const uint32_t CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW          = 20;
-const uint64_t CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT            = 525; // T*N/20
+const uint64_t CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT            = 525;
+const uint64_t CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT_V5         = 30;
 
 const size_t   BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW             = 60;
 const size_t   BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW_V4          = 11;
@@ -57,10 +47,12 @@ const uint64_t MINIMUM_FEE                                   = UINT64_C(5000);
 const uint64_t DEFAULT_DUST_THRESHOLD                        = UINT64_C(5000);
 
 const uint64_t DIFFICULTY_TARGET                             = 175;
+const uint64_t DIFFICULTY_GUESS_V5                           = 17000000; // 100kH/S
 const uint64_t EXPECTED_NUMBER_OF_BLOCKS_PER_DAY             = 24 * 60 * 60 / DIFFICULTY_TARGET;
 const size_t   DIFFICULTY_WINDOW                             = EXPECTED_NUMBER_OF_BLOCKS_PER_DAY;
 const size_t   DIFFICULTY_WINDOW_V2                          = 60;
 const size_t   DIFFICULTY_WINDOW_V4                          = 61;
+const size_t   DIFFICULTY_WINDOW_V5                          = 61;
 const size_t   DIFFICULTY_CUT                                = 60;
 const size_t   DIFFICULTY_LAG                                = 15;
 const size_t   DIFFICULTY_LAG_V2                             = 0;
@@ -88,6 +80,7 @@ const uint32_t IRIDIUM_REWARD_ADJUSTMENT_BLOCK               = 8560;
 const uint32_t UPGRADE_HEIGHT_V2                             = 69500;
 const uint32_t UPGRADE_HEIGHT_V3                             = 95250;
 const uint32_t UPGRADE_HEIGHT_V4                             = 115200;
+const uint32_t UPGRADE_HEIGHT_V5                             = 500000001;
 const unsigned UPGRADE_VOTING_THRESHOLD                      = 90;               // percent
 const uint32_t UPGRADE_VOTING_WINDOW                         = EXPECTED_NUMBER_OF_BLOCKS_PER_DAY;  // blocks
 const uint32_t UPGRADE_WINDOW                                = EXPECTED_NUMBER_OF_BLOCKS_PER_DAY;  // blocks
@@ -104,9 +97,11 @@ const char     MINER_CONFIG_FILE_NAME[]                      = "miner_conf.json"
 const uint32_t TESTNET_UPGRADE_HEIGHT_V2                             = 2;
 const uint32_t TESTNET_UPGRADE_HEIGHT_V3                             = 5;
 const uint32_t TESTNET_UPGRADE_HEIGHT_V4                             = 10;
-const uint64_t TESTNET_DIFFICULTY_TARGET                             = 175; // target in testnet mode
+const uint32_t TESTNET_UPGRADE_HEIGHT_V5                             = 20;
+const uint64_t TESTNET_DIFFICULTY_TARGET                             = 60; // target in testnet mode
+const uint64_t TESTNET_DIFFICULTY_GUESS                              = 200;
 
-} // parameters
+}
 
 const char     CRYPTONOTE_NAME[]                             = "iridium";
 
@@ -117,12 +112,13 @@ const uint8_t  BLOCK_MAJOR_VERSION_1                         =  1;
 const uint8_t  BLOCK_MAJOR_VERSION_2                         =  2;
 const uint8_t  BLOCK_MAJOR_VERSION_3                         =  3;
 const uint8_t  BLOCK_MAJOR_VERSION_4                         =  4;
+const uint8_t  BLOCK_MAJOR_VERSION_5                         =  5;
 const uint8_t  BLOCK_MINOR_VERSION_0                         =  0;
 const uint8_t  BLOCK_MINOR_VERSION_1                         =  1;
 
 const size_t   BLOCKS_IDS_SYNCHRONIZING_DEFAULT_COUNT        =  10000;  //by default, blocks ids count in synchronizing
-const size_t   BLOCKS_SYNCHRONIZING_DEFAULT_COUNT            =  300;    //by default, blocks count in blocks downloading
-const size_t   COMMAND_RPC_GET_BLOCKS_FAST_MAX_COUNT         =  1000;
+const size_t   BLOCKS_SYNCHRONIZING_DEFAULT_COUNT            =  250;    //by default, blocks count in blocks downloading
+const size_t   COMMAND_RPC_GET_BLOCKS_FAST_MAX_COUNT         =  2000;
 
 const int      P2P_DEFAULT_PORT                              =  12007;
 const int      RPC_DEFAULT_PORT                              =  13007;
@@ -143,14 +139,9 @@ const size_t   P2P_DEFAULT_HANDSHAKE_INVOKE_TIMEOUT          = 5000;          //
 const char     P2P_STAT_TRUSTED_PUB_KEY[]                    = "8f80f9a5a434a9f1510d13336228debfee9c918ce505efe225d8c94d045fa115";
 
 const char* const SEED_NODES[] = {
-    "178.33.231.97:12017", /*RBX*/
-    "178.33.231.97:12018",
-    "178.33.231.97:12019",
-    "178.33.231.97:12020",
-    "158.69.127.27:12017", /*MTL*/
-    "158.69.127.27:12018",
-    "158.69.127.27:12019",
-    "158.69.127.27:12020",
+    "144.208.96.2:12001", /*EXP*/
+    "5.178.66.70:12001", /*AMS*/
+    "192.99.8.12:12007", /*MTL*/
     "139.99.131.92:12017", /*SDN*/
     "139.99.131.92:12018",
     "139.99.131.92:12019",
@@ -167,7 +158,8 @@ struct CheckpointData {
 const std::initializer_list<CheckpointData> CHECKPOINTS = {
     {69500,"1e6f58fac635e3e0a0ca3845f6a07abaf4080c36dd91bfab315f6cdb657cc775"},
     {95250,"a5d8f703b1e4afa73b9f3050b9972c2b23730fcb5c916b521bc7d6ce2ad4c959"},
-    {115200,"896c2d44deca8b1349e55f88ee8795d51bfc7b0feb4a59562fda61ae6e1f9fa5"}
+    {115200,"896c2d44deca8b1349e55f88ee8795d51bfc7b0feb4a59562fda61ae6e1f9fa5"},
+    {292000,"1ecf853ac6107e2817a6a5703213be57b7598c0a05461f71ebd2d33412e42a75"}
 };
 
 } // CryptoNote

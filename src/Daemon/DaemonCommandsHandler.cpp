@@ -1,19 +1,7 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
-//
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
+// Copyright (c) 2017-2019, The Iridium developers
 // You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// If not, see <http://www.gnu.org/licenses/>.
 
 #include "DaemonCommandsHandler.h"
 
@@ -81,7 +69,7 @@ std::string DaemonCommandsHandler::get_commands_str()
 }
 
 //--------------------------------------------------------------------------------
-bool DaemonCommandsHandler::exit(const std::vector<std::string>& args) {
+bool DaemonCommandsHandler::exit(const std::vector<std::string> &args) {
   m_consoleHandler.requestStop();
   m_srv.sendStopSignal();
   return true;
@@ -116,7 +104,7 @@ bool DaemonCommandsHandler::print_cn(const std::vector<std::string>& args)
 }
 //--------------------------------------------------------------------------------
 bool DaemonCommandsHandler::print_bc(const std::vector<std::string> &args) {
-  if (!args.size()) {
+  if (args.empty()) {
     std::cout << "need block index parameter" << ENDL;
     return false;
   }
@@ -198,7 +186,7 @@ bool DaemonCommandsHandler::print_block_by_height(uint32_t height)
 }
 //--------------------------------------------------------------------------------
 bool DaemonCommandsHandler::print_block_by_hash(const std::string& arg) {
-  Crypto::Hash block_hash;
+  Crypto::Hash block_hash;{}
   if (!parse_hash256(arg, block_hash)) {
     return false;
   }
@@ -221,7 +209,7 @@ bool DaemonCommandsHandler::print_block(const std::vector<std::string> &args) {
 
   const std::string &arg = args.front();
   try {
-    uint32_t height = boost::lexical_cast<uint32_t>(arg);
+    auto height = boost::lexical_cast<uint32_t>(arg);
     print_block_by_height(height);
   } catch (boost::bad_lexical_cast &) {
     print_block_by_hash(arg);

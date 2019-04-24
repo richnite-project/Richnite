@@ -1,19 +1,7 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
-//
-// This file is part of Bytecoin.
-//
-// Bytecoin is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Bytecoin is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
+// Copyright (c) 2017-2019, The Iridium developers
 // You should have received a copy of the GNU Lesser General Public License
-// along with Bytecoin.  If not, see <http://www.gnu.org/licenses/>.
+// If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 #include <vector>
@@ -47,7 +35,8 @@ class Core : public ICore, public ICoreInformation {
 public:
   Core(const Currency& currency, Logging::ILogger& logger, Checkpoints&& checkpoints, System::Dispatcher& dispatcher,
        std::unique_ptr<IBlockchainCacheFactory>&& blockchainCacheFactory, std::unique_ptr<IMainChainStorage>&& mainChainStorage);
-  virtual ~Core();
+
+  virtual ~Core() override;
 
   virtual bool addMessageQueue(MessageQueue<BlockchainMessage>&  messageQueue) override;
   virtual bool removeMessageQueue(MessageQueue<BlockchainMessage>& messageQueue) override;
@@ -125,7 +114,6 @@ private:
   System::Dispatcher& dispatcher;
   System::ContextGroup contextGroup;
   Logging::LoggerRef logger;
-  Crypto::cn_context cryptoContext;
   Checkpoints checkpoints;
   std::unique_ptr<IUpgradeManager> upgradeManager;
   std::vector<std::unique_ptr<IBlockchainCache>> chainsStorage;
