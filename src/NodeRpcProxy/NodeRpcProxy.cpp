@@ -86,6 +86,7 @@ void NodeRpcProxy::resetInternalState() {
   lastLocalBlockHeaderInfo.difficulty = 0;
   lastLocalBlockHeaderInfo.reward = 0;
   m_knownTxs.clear();
+  m_lastHash = CryptoNote::NULL_HASH;
 }
 
 void NodeRpcProxy::init(const INode::Callback& callback) {
@@ -441,7 +442,7 @@ void NodeRpcProxy::getPoolSymmetricDifference(std::vector<Crypto::Hash>&& knownP
     return;
   }
 
-  if(knownBlockId == nullHash) {
+  if(knownBlockId == CryptoNote::NULL_HASH) {
         knownBlockId = m_lastHash;
   }
 
@@ -629,7 +630,7 @@ std::error_code NodeRpcProxy::doGetPoolSymmetricDifference(std::vector<Crypto::H
   req.tailBlockId = knownBlockId;
   req.knownTxsIds = knownPoolTxIds;
 
-  if(m_lastHash == nullHash) {
+  if(m_lastHash == CryptoNote::NULL_HASH) {
         m_lastHash = knownBlockId;
   }
 
