@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 3.8)
-project(iridium VERSION 4.1.0)
+cmake_minimum_required(VERSION 3.5)
+project(iridium VERSION 4.1.1)
 
 #----------------#
 # Global options #
@@ -18,8 +18,8 @@ set(CMAKE_SUPPRESS_REGENERATION ON)
 set(CMAKE_SKIP_PACKAGE_ALL_DEPENDENCY ON)
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 set(COMMIT_ID_IN_VERSION ON CACHE BOOL "Include git commit # in Version")
-set(STATIC ON CACHE BOOL "Link libraries statically")
 set(BUILD_TESTS OFF CACHE BOOL "build tests")
+set(PORTABLE ON)
 
 #----------------#
 # Cooking stuffs #
@@ -199,6 +199,7 @@ message(STATUS "========== building ${PROJECT_NAME} Core version : ${PROJECT_VER
 message(STATUS "Compiler : ${CMAKE_CXX_COMPILER_ID} version ${CMAKE_CXX_COMPILER_VERSION}")
 message(STATUS "Version : ${VERSION}")
 message(STATUS "Revision : ${COMMIT_ID}")
+message(STATUS "Arch : ${ARCH}")
 message(STATUS "Boost version : ${Boost_LIB_VERSION}")
 message(STATUS "Link libraries statically : ${STATIC}" )
 message(STATUS "Portable : ${PORTABLE}" )
