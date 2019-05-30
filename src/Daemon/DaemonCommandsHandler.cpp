@@ -52,6 +52,7 @@ DaemonCommandsHandler::DaemonCommandsHandler(CryptoNote::Core& core, CryptoNote:
   m_consoleHandler.setHandler("print_tx", boost::bind(&DaemonCommandsHandler::print_tx, this, _1), "Print transaction, print_tx <transaction_hash>");
   m_consoleHandler.setHandler("print_pool", boost::bind(&DaemonCommandsHandler::print_pool, this, _1), "Print transaction pool (long format)");
   m_consoleHandler.setHandler("print_pool_sh", boost::bind(&DaemonCommandsHandler::print_pool_sh, this, _1), "Print transaction pool (short format)");
+  m_consoleHandler.setHandler("print_stats", boost::bind(&DaemonCommandsHandler::print_stats, this, _1), "Print stats for this node/network");
   m_consoleHandler.setHandler("set_log", boost::bind(&DaemonCommandsHandler::set_log, this, _1), "set_log <level> - Change current log level, <level> is a number 0-4");
 }
 
@@ -292,4 +293,14 @@ bool DaemonCommandsHandler::print_pool_sh(const std::vector<std::string>& args)
   std::cout << std::endl;
 
   return true;
+}
+//--------------------------------------------------------------------------------
+bool DaemonCommandsHandler::print_stats(const std::vector<std::string>& args)
+{
+  std::cout << "Height: " << m_core.getTopBlockIndex() + 1 << std::endl
+   << "Difficulty: " << m_core.getDifficultyForNextBlock() << std::endl
+   << "Tx pool size: " << m_core.getPoolTransactionCount() << std::endl
+   << "Alt block count: " << m_core.getAlternativeBlockCount() << std::endl;
+   
+   return true;
 }
