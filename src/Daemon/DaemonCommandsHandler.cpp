@@ -218,6 +218,23 @@ bool DaemonCommandsHandler::print_block(const std::vector<std::string> &args) {
   return true;
 }
 //--------------------------------------------------------------------------------
+bool DaemonCommandsHandler::print_alt_blocks(const std::vector<std::string> &args)
+{
+  std::vector<CryptoNote::BlockTemplate> alt_blocks = m_core.getAlternativeBlocks();
+  if (alt_blocks.empty())
+  {
+    std::cout << "No alternative blocks found" << std::endl;
+    return true;
+  }
+  
+  for (const auto& block : alt_blocks)
+  {
+    std::cout << m_core.getBlockTemplateHash(block) << std::endl;
+  }
+  
+  return true;
+}
+//--------------------------------------------------------------------------------
 bool DaemonCommandsHandler::print_tx(const std::vector<std::string>& args)
 {
   if (args.empty()) {
