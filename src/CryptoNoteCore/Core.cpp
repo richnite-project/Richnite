@@ -306,6 +306,10 @@ BlockTemplate Core::getBlockByHash(const Crypto::Hash& blockHash) const {
   return restoreBlockTemplate(segment, blockIndex);
 }
 
+Crypto::Hash Core::getBlockTemplateHash(const BlockTemplate block) const {
+  return CachedBlock(block).getBlockHash();
+}
+
 std::vector<Crypto::Hash> Core::buildSparseChain() const {
   throwIfNotInitialized();
   Crypto::Hash topBlockHash = chainsLeaves[0]->getTopBlockHash();
