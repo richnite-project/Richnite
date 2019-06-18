@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(iridium VERSION 4.1.1)
+project(iridium VERSION 4.2.0)
 
 #----------------#
 # Global options #
