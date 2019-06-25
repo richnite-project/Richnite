@@ -1,6 +1,6 @@
-# iridium cryptocurrency (IRD)
+# RICHNITE cryptocurrency (RICH)
 
-![iridium logo](https://ird.cash/wp-content/uploads/2019/01/iridium.svg)
+![image](https://discordapp.com/channels/589813035422449684/589835363091087385/589837465100222465)
 
 Iridium is a cryptonight based cryptocurrency (ticker : IRD)
 
