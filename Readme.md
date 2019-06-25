@@ -1,4 +1,4 @@
-# RICHNITE cryptocurrency (RICH)
+# RICHNITE (RICH) cryptocurrency 
 
 ![image](https://media.discordapp.net/attachments/589835363091087385/589837465100222464/Picture100000000.png?width=400&height=180)
 
