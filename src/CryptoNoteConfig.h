@@ -79,9 +79,9 @@ const size_t   FUSION_TX_MIN_IN_OUT_COUNT_RATIO              = 4;
 const uint32_t KEY_IMAGE_CHECKING_BLOCK_INDEX                = 8560;
 const uint32_t IRIDIUM_REWARD_ADJUSTMENT_BLOCK               = 8560;
 
-const uint32_t UPGRADE_HEIGHT_V2                             = 69500;
-const uint32_t UPGRADE_HEIGHT_V3                             = 95250;
-const uint32_t UPGRADE_HEIGHT_V4                             = 115200;
+const uint32_t UPGRADE_HEIGHT_V2                             = 150;
+const uint32_t UPGRADE_HEIGHT_V3                             = 160;
+const uint32_t UPGRADE_HEIGHT_V4                             = 175;
 const uint32_t UPGRADE_HEIGHT_V5                             = 500000001;
 const unsigned UPGRADE_VOTING_THRESHOLD                      = 90;               // percent
 const uint32_t UPGRADE_VOTING_WINDOW                         = EXPECTED_NUMBER_OF_BLOCKS_PER_DAY;  // blocks
