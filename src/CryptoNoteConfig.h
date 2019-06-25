@@ -18,8 +18,8 @@ const size_t   CRYPTONOTE_MAX_BLOCK_BLOB_SIZE                = 500000000;
 const size_t   CRYPTONOTE_MAX_TX_SIZE                        = 1000000000;
 const uint64_t CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX       = 0x2fa313;
 const uint32_t CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW          = 5;
-const uint64_t CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT            = 6 * DIFFICULTY_TARGET;
-const uint64_t CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT_V5         = 6 * DIFFICULTY_TARGET;
+const uint64_t CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT            = 300;
+const uint64_t CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT_V5         = 300;
 
 const size_t   BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW             = 11;
 const size_t   BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW_V4          = 11;
@@ -141,7 +141,7 @@ const size_t   P2P_DEFAULT_HANDSHAKE_INVOKE_TIMEOUT          = 5000;          //
 const char     P2P_STAT_TRUSTED_PUB_KEY[]                    = "8f80f9a5a434a9f1510d13336228debfee9c918ce505efe225d8c94d045fa115";
 
 const char* const SEED_NODES[] = {
-    5.172.219.174:27277", //sniperviperman
+    "5.172.219.174:27277", //sniperviperman
 };
 
 
