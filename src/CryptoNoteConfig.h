@@ -25,9 +25,9 @@ const size_t   BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW             = 60;
 const size_t   BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW_V4          = 11;
 
 // MONEY_SUPPLY - total number coins to be generated
-const uint64_t MONEY_SUPPLY                                  = UINT64_C(2500000000000000);
+const uint64_t MONEY_SUPPLY                                  =UINT64_C(1000000000000000);
 const size_t CRYPTONOTE_COIN_VERSION                         = 1;
-const unsigned EMISSION_SPEED_FACTOR                         = 18;
+const unsigned EMISSION_SPEED_FACTOR                         = 23;
 
 // mandatory mixin V4
 const uint8_t MANDATORY_MIXIN_BLOCK_VERSION                  = 4;
@@ -38,13 +38,13 @@ const size_t MAX_MIXIN                                       = 10;
 static_assert(EMISSION_SPEED_FACTOR <= 8 * sizeof(uint64_t), "Bad EMISSION_SPEED_FACTOR");
 
 const size_t   CRYPTONOTE_REWARD_BLOCKS_WINDOW               = 100;
-const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE     = 20000;
+const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE     = 100000;
 const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V1  = 20000;
 const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_CURRENT = 60000; // increasing to allow bigger tx
 const size_t   CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE        = 600;
 const size_t   CRYPTONOTE_DISPLAY_DECIMAL_POINT              = 8;
-const uint64_t MINIMUM_FEE                                   = UINT64_C(5000);
-const uint64_t DEFAULT_DUST_THRESHOLD                        = UINT64_C(5000);
+const uint64_t MINIMUM_FEE                                   = UINT64_C(10);
+const uint64_t DEFAULT_DUST_THRESHOLD                        = UINT64_C(10);
 
 const uint64_t DIFFICULTY_TARGET                             = 175;
 const uint64_t DIFFICULTY_GUESS_V5                           = 17000000; // 100kH/S
@@ -104,7 +104,7 @@ const uint64_t TESTNET_DIFFICULTY_GUESS                              = 200;
 
 }
 
-const char     CRYPTONOTE_NAME[]                             = "iridium";
+const char     CRYPTONOTE_NAME[]                             = "richnite";
 
 const uint8_t  TRANSACTION_VERSION_1                         =  1;
 const uint8_t  TRANSACTION_VERSION_2                         =  2;
@@ -121,8 +121,8 @@ const size_t   BLOCKS_IDS_SYNCHRONIZING_DEFAULT_COUNT        =  10000;  //by def
 const size_t   BLOCKS_SYNCHRONIZING_DEFAULT_COUNT            =  250;    //by default, blocks count in blocks downloading
 const size_t   COMMAND_RPC_GET_BLOCKS_FAST_MAX_COUNT         =  2000;
 
-const int      P2P_DEFAULT_PORT                              =  12007;
-const int      RPC_DEFAULT_PORT                              =  13007;
+const int      P2P_DEFAULT_PORT                              =  27277;
+const int      RPC_DEFAULT_PORT                              =  27278;
 
 const size_t   P2P_LOCAL_WHITE_PEERLIST_LIMIT                =  1000;
 const size_t   P2P_LOCAL_GRAY_PEERLIST_LIMIT                 =  5000;
@@ -140,13 +140,7 @@ const size_t   P2P_DEFAULT_HANDSHAKE_INVOKE_TIMEOUT          = 5000;          //
 const char     P2P_STAT_TRUSTED_PUB_KEY[]                    = "8f80f9a5a434a9f1510d13336228debfee9c918ce505efe225d8c94d045fa115";
 
 const char* const SEED_NODES[] = {
-    "144.208.96.2:12001", /*EXP*/
-    "5.178.66.70:12001", /*AMS*/
-    "192.99.8.12:12007", /*MTL*/
-    "139.99.131.92:12017", /*SDN*/
-    "139.99.131.92:12018",
-    "139.99.131.92:12019",
-    "139.99.131.92:12020",
+    5.172.219.174:27277", //sniperviperman
 };
 
 
