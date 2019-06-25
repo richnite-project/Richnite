@@ -21,7 +21,7 @@ const uint32_t CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW          = 5;
 const uint64_t CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT            = 6 * DIFFICULTY_TARGET;
 const uint64_t CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT_V5         = 30;
 
-const size_t   BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW             = 60;
+const size_t   BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW             = 11;
 const size_t   BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW_V4          = 11;
 
 // MONEY_SUPPLY - total number coins to be generated
