@@ -1,18 +1,16 @@
-# iridium cryptocurrency (IRD)
+# RICHNITE (RICH) cryptocurrency 
 
-![iridium logo](https://ird.cash/wp-content/uploads/2019/01/iridium.svg)
+![image](https://media.discordapp.net/attachments/589835363091087385/589837465100222464/Picture100000000.png?width=400&height=180)
 
-Iridium is a cryptonight based cryptocurrency (ticker : IRD)
+Richnite is a cryptonight based cryptocurrency (ticker : RICH)
 
-This is the iridium core source code and binary release.
+This is the richnite core source code and binary release.
 
-[Main website](http://ird.cash)
+[Main website](https://richnite-project.github.io/Richnite/)
 
-[BitcoinTalk main announcement thread](https://bitcointalk.org/index.php?topic=2150442.0;all)
+[Pools](http://pool.stx.nl/RICH/#)
 
-[iridium-wallet gui (source and binaries)](https://github.com/iridiumdev/Iridium-wallet)
-
-[iridium graphicals elements](https://github.com/iridiumdev/iridium-graphics)
+[Richnite-wallet (source and binaries)](https://github.com/richnite-project/Richnite/releases/tag/v0.2.0)
 
 
 Libraries needed : boost >=1.58
@@ -21,15 +19,15 @@ Libraries needed : boost >=1.58
 
 If you want to compile the latest stable release, currently in production, clone the master branch :
 ```
-git clone -b master https://github.com/iridiumdev/iridium.git
+git clone -b master https://github.com/richnitedev/richnite.git
 ```
 
 Compilation informations : 
 ```
-$ git clone -b master https://github.com/iridiumdev/iridium.git
-$ cd iridium
-$ mkdir iridium-build
-$ cd iridium-build
+$ git clone -b master https://github.com/richnitedev/richnite.git
+$ cd richnite
+$ mkdir richnite-build
+$ cd richnite-build
 $ cmake -D STATIC=ON -D CMAKE_BUILD_TYPE=RELEASE ..
 $ PORTABLE=1 make
 ```

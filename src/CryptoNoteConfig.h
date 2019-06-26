@@ -1,5 +1,5 @@
 // Copyright (c) 2012-2017, The CryptoNote developers, The Bytecoin developers
-// Copyright (c) 2017-2019, The Iridium developers
+// Copyright (c) 2017-2019, The Richnite developers
 // You should have received a copy of the GNU Lesser General Public License
 // If not, see <http://www.gnu.org/licenses/>.
 
@@ -16,18 +16,18 @@ namespace parameters {
 const uint32_t CRYPTONOTE_MAX_BLOCK_NUMBER                   = 500000000;
 const size_t   CRYPTONOTE_MAX_BLOCK_BLOB_SIZE                = 500000000;
 const size_t   CRYPTONOTE_MAX_TX_SIZE                        = 1000000000;
-const uint64_t CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX       = 0x16fa;
-const uint32_t CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW          = 20;
-const uint64_t CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT            = 525;
-const uint64_t CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT_V5         = 30;
+const uint64_t CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX       = 0x2fa313;
+const uint32_t CRYPTONOTE_MINED_MONEY_UNLOCK_WINDOW          = 5;
+const uint64_t CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT            = 300;
+const uint64_t CRYPTONOTE_BLOCK_FUTURE_TIME_LIMIT_V5         = 300;
 
-const size_t   BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW             = 60;
+const size_t   BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW             = 11;
 const size_t   BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW_V4          = 11;
 
 // MONEY_SUPPLY - total number coins to be generated
-const uint64_t MONEY_SUPPLY                                  = UINT64_C(2500000000000000);
+const uint64_t MONEY_SUPPLY                                  = UINT64_C(1000000000000000);
 const size_t CRYPTONOTE_COIN_VERSION                         = 1;
-const unsigned EMISSION_SPEED_FACTOR                         = 18;
+const unsigned EMISSION_SPEED_FACTOR                         = 23;
 
 // mandatory mixin V4
 const uint8_t MANDATORY_MIXIN_BLOCK_VERSION                  = 4;
@@ -38,15 +38,16 @@ const size_t MAX_MIXIN                                       = 10;
 static_assert(EMISSION_SPEED_FACTOR <= 8 * sizeof(uint64_t), "Bad EMISSION_SPEED_FACTOR");
 
 const size_t   CRYPTONOTE_REWARD_BLOCKS_WINDOW               = 100;
-const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE     = 20000;
+const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE     = 100000;
+const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V2  = 20000;    
 const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_V1  = 20000;
 const size_t   CRYPTONOTE_BLOCK_GRANTED_FULL_REWARD_ZONE_CURRENT = 60000; // increasing to allow bigger tx
 const size_t   CRYPTONOTE_COINBASE_BLOB_RESERVED_SIZE        = 600;
-const size_t   CRYPTONOTE_DISPLAY_DECIMAL_POINT              = 8;
-const uint64_t MINIMUM_FEE                                   = UINT64_C(5000);
-const uint64_t DEFAULT_DUST_THRESHOLD                        = UINT64_C(5000);
+const size_t   CRYPTONOTE_DISPLAY_DECIMAL_POINT              = 2;
+const uint64_t MINIMUM_FEE                                   = UINT64_C(10000);
+const uint64_t DEFAULT_DUST_THRESHOLD                        = UINT64_C(10000);
 
-const uint64_t DIFFICULTY_TARGET                             = 175;
+const uint64_t DIFFICULTY_TARGET                             = 50;
 const uint64_t DIFFICULTY_GUESS_V5                           = 17000000; // 100kH/S
 const uint64_t EXPECTED_NUMBER_OF_BLOCKS_PER_DAY             = 24 * 60 * 60 / DIFFICULTY_TARGET;
 const size_t   DIFFICULTY_WINDOW                             = EXPECTED_NUMBER_OF_BLOCKS_PER_DAY;
@@ -78,9 +79,9 @@ const size_t   FUSION_TX_MIN_IN_OUT_COUNT_RATIO              = 4;
 const uint32_t KEY_IMAGE_CHECKING_BLOCK_INDEX                = 8560;
 const uint32_t IRIDIUM_REWARD_ADJUSTMENT_BLOCK               = 8560;
 
-const uint32_t UPGRADE_HEIGHT_V2                             = 69500;
-const uint32_t UPGRADE_HEIGHT_V3                             = 95250;
-const uint32_t UPGRADE_HEIGHT_V4                             = 115200;
+const uint32_t UPGRADE_HEIGHT_V2                             = 150;
+const uint32_t UPGRADE_HEIGHT_V3                             = 160;
+const uint32_t UPGRADE_HEIGHT_V4                             = 175;
 const uint32_t UPGRADE_HEIGHT_V5                             = 500000001;
 const unsigned UPGRADE_VOTING_THRESHOLD                      = 90;               // percent
 const uint32_t UPGRADE_VOTING_WINDOW                         = EXPECTED_NUMBER_OF_BLOCKS_PER_DAY;  // blocks
@@ -104,7 +105,7 @@ const uint64_t TESTNET_DIFFICULTY_GUESS                              = 200;
 
 }
 
-const char     CRYPTONOTE_NAME[]                             = "iridium";
+const char     CRYPTONOTE_NAME[]                             = "richnite";
 
 const uint8_t  TRANSACTION_VERSION_1                         =  1;
 const uint8_t  TRANSACTION_VERSION_2                         =  2;
@@ -121,8 +122,8 @@ const size_t   BLOCKS_IDS_SYNCHRONIZING_DEFAULT_COUNT        =  10000;  //by def
 const size_t   BLOCKS_SYNCHRONIZING_DEFAULT_COUNT            =  250;    //by default, blocks count in blocks downloading
 const size_t   COMMAND_RPC_GET_BLOCKS_FAST_MAX_COUNT         =  2000;
 
-const int      P2P_DEFAULT_PORT                              =  12007;
-const int      RPC_DEFAULT_PORT                              =  13007;
+const int      P2P_DEFAULT_PORT                              =  27277;
+const int      RPC_DEFAULT_PORT                              =  27278;
 
 const size_t   P2P_LOCAL_WHITE_PEERLIST_LIMIT                =  1000;
 const size_t   P2P_LOCAL_GRAY_PEERLIST_LIMIT                 =  5000;
@@ -140,13 +141,7 @@ const size_t   P2P_DEFAULT_HANDSHAKE_INVOKE_TIMEOUT          = 5000;          //
 const char     P2P_STAT_TRUSTED_PUB_KEY[]                    = "8f80f9a5a434a9f1510d13336228debfee9c918ce505efe225d8c94d045fa115";
 
 const char* const SEED_NODES[] = {
-    "144.208.96.2:12001", /*EXP*/
-    "5.178.66.70:12001", /*AMS*/
-    "192.99.8.12:12007", /*MTL*/
-    "139.99.131.92:12017", /*SDN*/
-    "139.99.131.92:12018",
-    "139.99.131.92:12019",
-    "139.99.131.92:12020",
+    "5.172.219.174:27277", //sniperviperman
 };
 
 
@@ -154,13 +149,9 @@ struct CheckpointData {
     uint32_t index;
     const char* blockId;
 };
-
 // checkpoints at Hardforks
 const std::initializer_list<CheckpointData> CHECKPOINTS = {
-    {69500,"1e6f58fac635e3e0a0ca3845f6a07abaf4080c36dd91bfab315f6cdb657cc775"},
-    {95250,"a5d8f703b1e4afa73b9f3050b9972c2b23730fcb5c916b521bc7d6ce2ad4c959"},
-    {115200,"896c2d44deca8b1349e55f88ee8795d51bfc7b0feb4a59562fda61ae6e1f9fa5"},
-    {319000,"3e1b3f7decdf3ffc7d40ca67dc7cbab464247f54d83f0f3ea33216c29a65530d"}
+   
 };
 
 } // CryptoNote
