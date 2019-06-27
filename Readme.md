@@ -6,7 +6,7 @@ Richnite is a cryptonight based cryptocurrency (ticker : RICH)
 
 This is the richnite core source code and binary release.
 
-[Main website](https://richnite-project.github.io/richnite/)
+[Main website](https://richnite-project.github.io/Richnite/)
 
 [Pools](http://pool.stx.nl/RICH/#)
 
