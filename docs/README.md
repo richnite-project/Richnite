@@ -11,11 +11,11 @@ With Quick transactions, privacy and unlimited Blocksize make this coin perfect 
 ## SPECIFICATION OF RICHNITE: 
 ```MARKDOWN
 
- 1. Blocktime      : 25 second blocktime
+ 1. Blocktime      : 50 second blocktime
  2. Speed Factor   : 23 emission
  3. Total supply   : 10 trillion
  4. Max Blocksize  : Unlimited
- 5. Algorithm      : Cryptonight Turtle algorithm  
+ 5. Algorithm      : Cryptonight Light (Aeon v7) algorithm  
  6. Mined RICH     : Unlock windows is 5 (might be raised)
 
 ```
@@ -23,7 +23,7 @@ With Quick transactions, privacy and unlimited Blocksize make this coin perfect 
 ## IMPORTANT LINKS TO GET START :
 
 
-[WALLET LINKS](https://github.com/richnite-project/Richnite/releases)
+[WALLET LINKS](https://github.com/richnite-project/richnite/releases/tag/v5.0.0)
 
 [POOL LINKS](http://pool.stx.nl/RICH/#)
 
