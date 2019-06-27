@@ -6,11 +6,11 @@ Richnite is a cryptonight based cryptocurrency (ticker : RICH)
 
 This is the richnite core source code and binary release.
 
-[Main website](https://richnite-project.github.io/Richnite/)
+[Main website](https://richnite-project.github.io/richnite/)
 
 [Pools](http://pool.stx.nl/RICH/#)
 
-[Richnite-wallet (source and binaries)](https://github.com/richnite-project/Richnite/releases/tag/v0.2.0)
+[Richnite-wallet (source and binaries)](https://github.com/richnite-project/richnite2/releases/tag/v5.0.0)
 
 
 Libraries needed : boost >=1.58
@@ -31,3 +31,5 @@ $ cd richnite-build
 $ cmake -D STATIC=ON -D CMAKE_BUILD_TYPE=RELEASE ..
 $ PORTABLE=1 make
 ```
+
+### [JOIN DISCORD](https://discord.gg/m7rdznM)
