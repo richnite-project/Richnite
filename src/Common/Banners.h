@@ -1,6 +1,7 @@
 #ifndef BANNERS_H
 #define BANNERS_H
 // Copyright (c) 2017-2019, The Iridium developers
+// Copyright (c) 2017-2019, The Richnite developers
 // Ascii Arts by Thunderosa and Stevebrush - Remember the good old time
 // You should have received a copy of the GNU Lesser General Public License
 // If not, see <http://www.gnu.org/licenses/>.
@@ -132,7 +133,7 @@ const std::string othersBanner = Red +
 + reset;
 
 const std::string bannerText =
-"          Your node is now synchronized with the Iridium network\n"
+"          Your node is now synchronized with the Richnite network\n"
 "             Type \"help\" for the list of available commands\n"
 ;
 
