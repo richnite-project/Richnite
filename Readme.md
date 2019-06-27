@@ -1,4 +1,4 @@
-# RICHNITE (RICH) cryptocurrency 
+### RICHNITE (RICH) cryptocurrency 
 
 ![image](https://media.discordapp.net/attachments/589835363091087385/589837465100222464/Picture100000000.png?width=400&height=180)
 
@@ -22,7 +22,7 @@ If you want to compile the latest stable release, currently in production, clone
 git clone -b master https://github.com/richnitedev/richnite.git
 ```
 
-###Linux
+## Linux
 Compilation informations : 
 ```
 $ git clone -b master https://github.com/richnitedev/richnite.git
@@ -34,7 +34,7 @@ $ PORTABLE=1 make
 ```
 
 
-###Windows
+## Windows
 Prerequisites
 You can build for 32-bit or 64-bit Windows. If you're not sure, pick 64-bit.
 ```
@@ -49,7 +49,7 @@ OpenSSL 32-bit
 Building
 ```
 
-##For 64-bit:
+## For 64-bit:
 ```
 From the start menu, open 'x64 Native Tools Command Prompt for vs2017'.
 cd <your_richnite_directory>
@@ -59,7 +59,7 @@ set PATH="C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\
 cmake -G "Visual Studio 15 2017 Win64" .. -DBOOST_ROOT=C:/local/boost_1_70_0
 MSBuild richnite.sln /p:Configuration=Release /m
 ```
-##For 32-bit:
+## For 32-bit:
 ```
 From the start menu, open 'x86 Native Tools Command Prompt for vs2017'.
 cd <your_richnite_directory>
