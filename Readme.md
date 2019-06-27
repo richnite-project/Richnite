@@ -10,7 +10,7 @@ This is the richnite core source code and binary release.
 
 [Pools](http://pool.stx.nl/RICH/#)
 
-[Richnite-wallet (source and binaries)](https://github.com/richnite-project/richnite2/releases/tag/v5.0.0)
+[Richnite-wallet (source and binaries)](https://github.com/richnite-project/Richnite/releases/tag/V5.0.0)
 
 
 Libraries needed : boost >=1.70
